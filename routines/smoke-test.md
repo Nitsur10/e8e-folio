@@ -31,15 +31,15 @@ against the production deployment and report results.
 ### Reporting
 
 **If ALL checks pass:**
-- Post to #${PROJECT_NAME}-dev: "✅ Deploy verified — all smoke tests passed"
+- Post to #e8e-folio-dev: "✅ Deploy verified — all smoke tests passed"
 - Query the `feedback_items` table for any items with status='in_review' 
   where the github_pr_url matches the deployed PR
 - Update their status to 'deployed' and set deployed_at to now()
-- Post to #${PROJECT_NAME}-feedback: notify the original reporter that 
+- Post to #e8e-folio-feedback: notify the original reporter that 
   their feedback has been addressed in the latest release
 
 **If ANY check fails:**
-- Post to #${PROJECT_NAME}-dev: "🔴 Deploy smoke test FAILED" with details
+- Post to #e8e-folio-dev: "🔴 Deploy smoke test FAILED" with details
   of which checks failed and the error messages
 - Include the Vercel deployment URL for quick debugging
 - Do NOT update any feedback items to 'deployed'

@@ -1,10 +1,10 @@
 # Routine: Dev Agent
-# Trigger: Slack — message mentioning @Claude in #${PROJECT_NAME}-dev
+# Trigger: Slack — message mentioning @Claude in #e8e-folio-dev
 # Connectors: Slack, GitHub, Supabase
 
 ## When to act
 
-Only act when a message in #${PROJECT_NAME}-dev **directly requests work**. Examples:
+Only act when a message in #e8e-folio-dev **directly requests work**. Examples:
 
 - "@Claude add a logout button to the nav"
 - "@Claude fix the broken login redirect"
@@ -15,7 +15,7 @@ Only act when a message in #${PROJECT_NAME}-dev **directly requests work**. Exam
 **Ignore** messages that are:
 - Status updates or summaries posted by other routines
 - Casual conversation that mentions @Claude without a task
-- Messages in #${PROJECT_NAME}-feedback (handled by feedback-classifier)
+- Messages in #e8e-folio-feedback (handled by feedback-classifier)
 - Threads you are already actively working on (check routine_logs)
 
 ## How to handle a build request

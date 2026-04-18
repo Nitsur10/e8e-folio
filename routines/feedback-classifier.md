@@ -4,7 +4,7 @@
 
 ## What to do
 
-1. Use the Slack connector to read all new messages from #${PROJECT_NAME}-feedback 
+1. Use the Slack connector to read all new messages from #e8e-folio-feedback 
    posted since the last routine run (check routine_logs table for last run timestamp).
 
 2. For each new message:
@@ -25,19 +25,19 @@
    - Store the slack_thread_ts and slack_channel_id for reference
    - Store the classification, priority, and summary
 
-4. Post a formatted summary to #${PROJECT_NAME}-dev with:
+4. Post a formatted summary to #e8e-folio-dev with:
    - Count of new items by category
    - Any P0 or P1 items highlighted at the top
    - A brief description of each item
 
-5. For P0 items ONLY: also post an urgent alert in #${PROJECT_NAME}-dev 
+5. For P0 items ONLY: also post an urgent alert in #e8e-folio-dev 
    with @channel mention.
 
 6. Log this run in the `routine_logs` table with items_processed count 
    and a summary of what was done.
 
 ## Important
-- Do NOT respond to users directly in #${PROJECT_NAME}-feedback from this routine.
+- Do NOT respond to users directly in #e8e-folio-feedback from this routine.
   The Claude in Slack app handles real-time responses separately.
 - If a message is clearly spam or unrelated to the project, classify as 'other' 
   with P3 priority and note it in metadata.

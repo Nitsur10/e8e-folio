@@ -1,4 +1,4 @@
-# Project: ${PROJECT_NAME}
+# Project: e8e-folio
 
 ## Overview
 This project uses a feedback loop architecture with Slack channels for user feedback collection and automated requirement generation.
@@ -6,7 +6,7 @@ This project uses a feedback loop architecture with Slack channels for user feed
 ## Architecture
 - **Frontend**: Next.js + TypeScript, deployed on Vercel
 - **Database**: Supabase (PostgreSQL) with feedback tracking schema
-- **Feedback channels**: Slack (#${PROJECT_NAME}-feedback for users, #${PROJECT_NAME}-dev for internal)
+- **Feedback channels**: Slack (#e8e-folio-feedback for users, #e8e-folio-dev for internal)
 - **Automation**: Claude Code routines for feedback classification, PR review, and smoke testing
 
 ## Key Tables
@@ -26,8 +26,8 @@ received → triaged → accepted → in_progress → in_review → deployed →
 - All PRs must pass the auto-review routine before merge
 
 ## Slack Integration
-- Feedback widget in the app posts to #${PROJECT_NAME}-feedback via webhook
-- Nightly routine classifies new feedback and posts summaries to #${PROJECT_NAME}-dev
+- Feedback widget in the app posts to #e8e-folio-feedback via webhook
+- Nightly routine classifies new feedback and posts summaries to #e8e-folio-dev
 - Post-deploy routine updates feedback items to status='deployed' and notifies users
 
 ## Environment Variables

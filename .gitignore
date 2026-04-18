@@ -43,3 +43,4 @@ Thumbs.db
 
 # Bootstrap logs
 /tmp/bootstrap-*.log
+.vercel
