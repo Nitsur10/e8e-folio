@@ -1,0 +1,3555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>folio.e8e — Design Walkthrough v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f100d;
+    --bg-elev: #17181410;
+    --surface: #1c1d19;
+    --surface-2: #222320;
+    --surface-3: #2a2b27;
+    --ink: #f6f4ee;
+    --ink-dim: #b8b4a7;
+    --ink-quiet: #767367;
+    --rule: #2d2e2a;
+    --rule-soft: #23241f;
+
+    --amber: #d4a25e;
+    --amber-soft: #e0b67e;
+    --amber-bg: #2e2614;
+
+    --teal: #6fb3a4;
+    --teal-soft: #9ecec2;
+    --teal-bg: #1a2f2b;
+
+    --cream: #f6efe0;
+    --rose: #d97867;
+    --rose-bg: #3a1e18;
+    --sage: #8ea87c;
+    --sage-bg: #1f2a18;
+
+    --profit: #8ea87c;
+    --loss: #c97464;
+
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --r-xl: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-feature-settings: "ss01", "ss02", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 1400px 700px at 50% -10%, #1a1b17 0%, transparent 60%),
+      radial-gradient(ellipse 800px 400px at 100% 100%, #1a1d1c 0%, transparent 50%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  .shell {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 72px 48px 160px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ========== MASTHEAD ========== */
+  .masthead {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 64px;
+  }
+  .wordmark {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+  }
+  .wordmark .lede, .wordmark .mark {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 64px;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    font-variation-settings: "opsz" 144;
+  }
+  .wordmark .mark { font-style: italic; color: var(--amber); }
+  .wordmark .dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--amber);
+    margin: 0 6px 10px 4px;
+    box-shadow: 0 0 18px var(--amber);
+  }
+  .tagline {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-quiet);
+    margin-top: 12px;
+  }
+  .tagline .sep { color: var(--amber); margin: 0 8px; }
+  .meta-col {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+    line-height: 1.8;
+  }
+  .meta-col strong { color: var(--ink); font-weight: 500; }
+
+  /* ========== INTRO ========== */
+  .intro {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 80px;
+    margin-bottom: 96px;
+  }
+  .intro .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    border-top: 1px solid var(--amber);
+    padding-top: 12px;
+  }
+  .intro .body h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 52px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    font-variation-settings: "opsz" 144;
+  }
+  .intro .body h1 em { font-style: italic; color: var(--amber); }
+  .intro .body p {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    max-width: 720px;
+  }
+  .intro .body p + p { margin-top: 14px; }
+
+  .toc {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    padding: 20px 0;
+    border-top: 1px solid var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .toc a {
+    text-decoration: none;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 8px 0;
+    border-top: 1px solid var(--rule);
+    transition: color 0.2s;
+  }
+  .toc a:hover { color: var(--amber); }
+  .toc a .num {
+    display: block;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--amber);
+    letter-spacing: -0.02em;
+    text-transform: none;
+    margin-bottom: 4px;
+  }
+
+  /* ========== ACT DIVIDER ========== */
+  .act {
+    display: grid;
+    grid-template-columns: 240px 1fr auto;
+    gap: 60px;
+    align-items: baseline;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+    margin: 120px 0 40px;
+  }
+  .act .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+  }
+  .act .num span { color: var(--amber); }
+  .act .title {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .act .title em { font-style: italic; color: var(--amber); }
+  .act .caption {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .act-lead {
+    grid-column: 2 / 3;
+    margin-top: 8px;
+    color: var(--ink-dim);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 720px;
+    font-family: var(--sans);
+  }
+
+  /* ========== PHONE FRAME ========== */
+  .screens-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 36px;
+    margin-top: 48px;
+  }
+  .screens-row.three { grid-template-columns: repeat(3, 1fr); gap: 48px; }
+
+  .phone {
+    background: #0a0a08;
+    border-radius: 36px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 24px 60px rgba(0,0,0,0.5),
+      0 8px 24px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .phone::before {
+    content: "";
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    width: 72px; height: 18px;
+    background: #0a0a08;
+    border-radius: 10px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    background: var(--bg);
+    border-radius: 28px;
+    overflow: hidden;
+    aspect-ratio: 9 / 19.5;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .statusbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 22px 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink);
+    height: 38px;
+  }
+  .statusbar .time { font-weight: 600; font-size: 11px; font-family: var(--sans); }
+
+  .phone-caption {
+    margin-top: 20px;
+    padding: 0 2px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .phone-caption .label-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+  }
+  .phone-caption .phone-title {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-style: italic;
+    font-weight: 500;
+    flex: 1;
+    line-height: 1.1;
+  }
+  .phone-caption .context {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-quiet);
+    text-align: right;
+    letter-spacing: 0.08em;
+  }
+
+  /* ========== APP CONTENT COMMON ========== */
+  .app {
+    flex: 1;
+    padding: 4px 14px 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .app-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 2px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .app-top .greet {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .app-top .greet em { font-style: italic; color: var(--amber); }
+  .app-top .date {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-lg);
+    padding: 14px;
+    position: relative;
+  }
+  .card-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card-label .pill {
+    background: var(--amber-bg);
+    color: var(--amber-soft);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 7px;
+    letter-spacing: 0.15em;
+  }
+  .card-label .pill.teal { background: var(--teal-bg); color: var(--teal-soft); }
+  .card-label .pill.sage { background: var(--sage-bg); color: var(--sage); }
+
+  /* ========== ACT 1: ONBOARDING ========== */
+
+  /* Screen: splash */
+  .splash {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px 20px 32px;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(232, 176, 77, 0.15) 0%, transparent 50%),
+      var(--bg);
+  }
+  .splash .big-wordmark {
+    margin-top: 80px;
+    text-align: center;
+  }
+  .splash .big-wordmark .w {
+    font-family: var(--serif);
+    font-size: 56px;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    font-variation-settings: "opsz" 144;
+  }
+  .splash .big-wordmark .w em { font-style: italic; color: var(--amber); }
+  .splash .big-wordmark .sub {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .splash .pitch {
+    font-family: var(--serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 1.3;
+    text-align: center;
+    color: var(--ink-dim);
+    padding: 0 10px;
+  }
+  .splash-cta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Screen: value prop carousel */
+  .value-screen {
+    flex: 1;
+    padding: 48px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .value-screen .dots {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+  }
+  .value-screen .dots span {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--rule);
+  }
+  .value-screen .dots span.active {
+    background: var(--amber);
+    width: 18px;
+    border-radius: 3px;
+  }
+  .value-screen .chap {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .value-screen h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-top: 24px;
+    font-variation-settings: "opsz" 144;
+  }
+  .value-screen h2 em { font-style: italic; color: var(--amber); }
+  .value-screen .descr {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    margin-top: 14px;
+  }
+
+  .illust-frame {
+    flex: 1;
+    min-height: 200px;
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(160deg, var(--surface) 0%, transparent 100%);
+    margin: 16px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .illust-frame svg { max-width: 100%; }
+
+  /* Q&A step */
+  .qa {
+    flex: 1;
+    padding: 32px 4px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .qa .step-meta {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .qa .step-meta .n { color: var(--amber); }
+  .qa h3 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 26px;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    font-variation-settings: "opsz" 144;
+  }
+  .qa h3 em { font-style: italic; }
+  .qa .sub {
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .qa-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .qa-opt {
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    line-height: 1.3;
+  }
+  .qa-opt.active {
+    background: var(--amber-bg);
+    border-color: var(--amber);
+    color: var(--amber-soft);
+  }
+  .qa-opt .hint {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .qa-opt.active .hint { color: var(--amber-soft); opacity: 0.8; }
+
+  .progress {
+    height: 2px;
+    background: var(--rule);
+    border-radius: 2px;
+    margin: 0 4px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 2px;
+  }
+
+  /* Broker connection */
+  .broker-body {
+    flex: 1;
+    padding: 24px 4px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .broker-logo {
+    margin-top: 16px;
+    padding: 20px;
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--rule-soft);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .broker-logo .lbox {
+    width: 44px; height: 44px;
+    background: var(--surface-3);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 22px;
+    color: var(--amber);
+  }
+  .broker-logo .meta .name {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 500;
+  }
+  .broker-logo .meta .sub {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+  .broker-input {
+    margin-top: 16px;
+  }
+  .broker-input label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .broker-input input {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .security-bullet {
+    margin-top: 16px;
+    padding: 14px;
+    background: var(--teal-bg);
+    border-radius: var(--r-md);
+    border: 1px solid var(--teal);
+  }
+  .security-bullet .st {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--teal-soft);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .security-bullet .desc {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+  }
+
+  /* Agent config wheel */
+  .agent-config {
+    flex: 1;
+    padding: 20px 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .config-section { }
+  .config-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .ticker-pick {
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .ticker-pick .t-sym {
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .ticker-pick .t-name {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--ink-dim);
+    margin-top: 2px;
+  }
+  .ticker-pick .t-price {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--sage);
+    text-align: right;
+  }
+  .ticker-pick .t-price .sub {
+    display: block;
+    font-size: 9px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+  }
+  .slider-chip-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .slider-chip {
+    padding: 10px 6px;
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-sm);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
+  .slider-chip.active {
+    background: var(--amber-bg);
+    border-color: var(--amber);
+    color: var(--amber-soft);
+  }
+  .slider-chip .lbl {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  /* Dock */
+  .dock {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding: 12px 0 2px;
+    border-top: 1px solid var(--rule-soft);
+  }
+  .dock button {
+    background: none;
+    border: none;
+    color: var(--ink-quiet);
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  .dock button.active { color: var(--amber); }
+
+  /* Buttons */
+  .btn {
+    padding: 13px;
+    border-radius: var(--r-md);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    display: block;
+    text-align: center;
+  }
+  .btn-primary { background: var(--amber); color: #1f1708; }
+  .btn-secondary { background: transparent; border: 1px solid var(--rule); color: var(--ink-dim); }
+  .btn-ghost { background: transparent; color: var(--ink-quiet); font-size: 9px; }
+
+  /* ========== ACT 2: EVERYDAY ========== */
+
+  /* Home variants */
+  .portfolio .value {
+    font-family: var(--serif);
+    font-size: 34px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variation-settings: "opsz" 144;
+  }
+  .portfolio .value .currency { font-size: 20px; vertical-align: top; color: var(--ink-dim); font-style: italic; margin-right: 2px; }
+  .portfolio .delta {
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--profit);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .portfolio .delta.loss { color: var(--loss); }
+  .portfolio .delta .muted { color: var(--ink-quiet); }
+  .sparkline {
+    margin-top: 10px;
+    height: 40px;
+    width: 100%;
+  }
+
+  /* Regime banner (pre-market state) */
+  .regime-banner {
+    padding: 12px 14px;
+    background: linear-gradient(90deg, var(--surface) 0%, var(--amber-bg) 100%);
+    border: 1px solid var(--amber);
+    border-radius: var(--r-md);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .regime-banner .lbl {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--amber-soft);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .regime-banner .msg {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .regime-banner .ico {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: #1f1708;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 18px;
+  }
+
+  /* Agent card */
+  .agent-card {
+    background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    border: 1px solid var(--rule-soft);
+  }
+  .agent-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .agent-name {
+    font-family: var(--serif);
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .agent-name em { font-style: italic; color: var(--amber); }
+  .agent-sub {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .health-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--sage);
+    text-transform: uppercase;
+  }
+  .health-chip.warn { color: var(--amber); }
+  .health-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 8px var(--sage);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .health-dot.warn { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .agent-body {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--rule);
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ink-dim);
+  }
+  .agent-body em { color: var(--ink); font-style: normal; font-weight: 500; }
+  .agent-body .ticker {
+    font-family: var(--mono);
+    background: var(--surface-3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--amber-soft);
+  }
+  .agent-meta {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule-soft);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-sm);
+    overflow: hidden;
+  }
+  .agent-meta > div {
+    background: var(--surface);
+    padding: 7px 9px;
+  }
+  .agent-meta .k {
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  .agent-meta .v {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  /* News signal */
+  .news-card {
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--rule-soft);
+    padding: 12px 2px 0;
+    border-radius: 0;
+  }
+  .news-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 8px;
+    align-items: start;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .news-item:last-child { border-bottom: none; }
+  .news-score {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--amber-soft);
+    background: var(--amber-bg);
+    padding: 3px 3px;
+    border-radius: 3px;
+    text-align: center;
+    line-height: 1;
+  }
+  .news-score.teal { color: var(--teal-soft); background: var(--teal-bg); }
+  .news-score.rose { color: var(--rose); background: var(--rose-bg); }
+  .news-score .pct { font-size: 6px; display: block; opacity: 0.7; margin-top: 1px; letter-spacing: 0.1em; }
+  .news-body {
+    font-size: 10px;
+    line-height: 1.35;
+    color: var(--ink-dim);
+  }
+  .news-body .t { color: var(--ink); font-weight: 500; }
+  .news-body .tag {
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .news-time {
+    font-family: var(--mono);
+    font-size: 7px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  /* Decision hero */
+  .decision-hero {
+    background: linear-gradient(165deg, var(--surface-2) 0%, var(--surface) 100%);
+    border: 1px solid var(--amber);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .decision-hero::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, var(--amber-bg) 0%, transparent 70%);
+    opacity: 0.6;
+    pointer-events: none;
+  }
+  .decision-urgent {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .decision-urgent::before {
+    content: "";
+    width: 4px; height: 4px;
+    background: var(--amber);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .decision-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin-top: 8px;
+    font-variation-settings: "opsz" 144;
+  }
+  .decision-title em { color: var(--amber); font-style: italic; }
+  .decision-trade {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--r-md);
+    border: 1px solid var(--rule);
+  }
+  .decision-trade .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 3px 0;
+    font-size: 11px;
+  }
+  .decision-trade .row .k {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .decision-trade .row .v {
+    font-family: var(--mono);
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .decision-trade .row .v.big {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .decision-reason {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 2px solid var(--amber);
+    background: rgba(232, 176, 77, 0.04);
+    line-height: 1.5;
+    color: var(--ink-dim);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+  }
+  .decision-reason::before {
+    content: "“";
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 0;
+    color: var(--amber);
+    vertical-align: -12px;
+    margin-right: 4px;
+  }
+  .decision-signals {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .signal-chip {
+    background: var(--surface-3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    color: var(--ink-dim);
+  }
+  .approve-stack {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .constraint-row {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-quiet);
+  }
+  .constraint-chip {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px;
+    background: var(--surface);
+    border-radius: 3px;
+    border: 1px solid var(--rule-soft);
+  }
+  .constraint-chip::before { content: "✓"; color: var(--sage); font-size: 9px; }
+
+  /* Push notification (lock screen) */
+  .lock-screen {
+    flex: 1;
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 70%, #1a1a16 0%, var(--bg) 80%);
+  }
+  .lock-time {
+    text-align: center;
+    margin-top: 60px;
+  }
+  .lock-time .t {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 72px;
+    color: var(--ink);
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    font-variation-settings: "opsz" 144;
+  }
+  .lock-time .d {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .push-notif {
+    margin-top: 60px;
+    padding: 14px;
+    background: rgba(28, 29, 25, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--amber);
+    border-radius: var(--r-lg);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .push-notif .top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .push-notif .ico {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    background: var(--amber);
+    color: #1f1708;
+    font-family: var(--serif);
+    font-size: 12px;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .push-notif .app-n {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    flex: 1;
+  }
+  .push-notif .when {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+  }
+  .push-notif .headline {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--ink);
+  }
+  .push-notif .headline em { font-style: italic; color: var(--amber); }
+  .push-notif .body-t {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+  }
+  .push-notif-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .push-notif-actions button {
+    background: none;
+    border: none;
+    padding: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .push-notif-actions button.approve { color: var(--amber); font-weight: 600; }
+  .push-notif-actions button.review { color: var(--ink-dim); }
+
+  /* Retrospective */
+  .retro-hero {
+    padding: 20px 16px 16px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--teal-bg) 0%, transparent 100%);
+    border-radius: var(--r-lg);
+    border: 1px solid var(--teal);
+    margin-top: 2px;
+  }
+  .retro-hero .stamp {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.25em;
+    color: var(--teal-soft);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .retro-hero .amount {
+    font-family: var(--serif);
+    font-size: 40px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    line-height: 1;
+    font-variation-settings: "opsz" 144;
+  }
+  .retro-hero .amount .sign { color: var(--teal); font-style: italic; }
+  .retro-hero .subtitle {
+    margin-top: 6px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .retro-timeline {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: var(--r-md);
+    border: 1px solid var(--rule-soft);
+  }
+  .retro-step {
+    display: grid;
+    grid-template-columns: 56px 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--rule);
+    align-items: baseline;
+  }
+  .retro-step:last-child { border-bottom: none; padding-bottom: 0; }
+  .retro-step:first-child { padding-top: 0; }
+  .retro-step .when {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .retro-step .what {
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--ink-dim);
+  }
+  .retro-step .what strong { color: var(--ink); font-weight: 500; }
+  .retro-step .what .money { font-family: var(--mono); color: var(--teal-soft); }
+  .retro-lesson {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+  }
+  .retro-lesson::before {
+    content: "What I learned —";
+    display: block;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    font-style: normal;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  /* ========== ACT 3: TRANSPARENCY ========== */
+
+  /* Explain-this-decision */
+  .explain {
+    flex: 1;
+    padding: 20px 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .explain-header h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .explain-header h3 em { font-style: italic; color: var(--amber); }
+  .explain-header .sub {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .trace-steps {
+    border-left: 1px solid var(--rule);
+    margin-left: 10px;
+    padding-left: 16px;
+  }
+  .trace-step {
+    position: relative;
+    padding-bottom: 14px;
+  }
+  .trace-step::before {
+    content: "";
+    position: absolute;
+    left: -22px;
+    top: 3px;
+    width: 10px;
+    height: 10px;
+    background: var(--surface);
+    border: 2px solid var(--amber);
+    border-radius: 50%;
+  }
+  .trace-step.sage::before { border-color: var(--sage); }
+  .trace-step.teal::before { border-color: var(--teal); }
+  .trace-step .label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .trace-step.sage .label { color: var(--sage); }
+  .trace-step.teal .label { color: var(--teal-soft); }
+  .trace-step .body {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+  }
+  .trace-step .body strong { color: var(--ink); font-weight: 500; }
+  .trace-step .body .mono {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber-soft);
+    background: var(--surface);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* Agent detail */
+  .agent-detail-hero {
+    padding: 18px;
+    background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-lg);
+    text-align: center;
+  }
+  .agent-detail-hero .name {
+    font-family: var(--serif);
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    font-variation-settings: "opsz" 144;
+  }
+  .agent-detail-hero .name em { font-style: italic; color: var(--amber); }
+  .agent-detail-hero .tagline-small {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .agent-detail-hero .health-big {
+    margin-top: 12px;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--sage);
+  }
+  .mini-stats {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .mini-stat {
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-sm);
+    text-align: center;
+  }
+  .mini-stat .v {
+    font-family: var(--serif);
+    font-size: 18px;
+    letter-spacing: -0.02em;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .mini-stat .v.teal { color: var(--teal-soft); }
+  .mini-stat .k {
+    margin-top: 4px;
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 0.18em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+
+  .activity-bar {
+    margin-top: 12px;
+    height: 44px;
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-sm);
+  }
+  .activity-bar .bar {
+    flex: 1;
+    background: var(--rule);
+    border-radius: 1px;
+    min-height: 2px;
+  }
+  .activity-bar .bar.active { background: var(--teal); }
+  .activity-bar .bar.pending { background: var(--amber); }
+
+  /* Signals feed */
+  .signals-feed-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 2px 10px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .signals-feed-head .title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .signals-feed-head .title em { font-style: italic; color: var(--amber); }
+  .signals-feed-head .count {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+
+  /* Kill switch confirmation */
+  .kill-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 20px;
+    background:
+      radial-gradient(ellipse at 50% 40%, rgba(217, 120, 103, 0.12) 0%, transparent 60%);
+  }
+  .kill-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--rose-bg);
+    border: 1px solid var(--rose);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--serif);
+    font-size: 30px;
+    font-style: italic;
+    color: var(--rose);
+  }
+  .kill-screen .big-title {
+    margin-top: 20px;
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    text-align: center;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .kill-screen .big-title em { font-style: italic; color: var(--rose); }
+  .kill-screen .descr {
+    margin-top: 12px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: 260px;
+  }
+  .kill-checks {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+  }
+  .kill-checks .r {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+  }
+  .kill-checks .r .v { color: var(--sage); }
+  .kill-actions {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .btn-destructive { background: var(--rose); color: #2a1612; }
+
+  /* Settings */
+  .settings {
+    flex: 1;
+    padding: 16px 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .settings-group {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+  .settings-group-head {
+    padding: 10px 14px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--rule-soft);
+    background: var(--surface-2);
+  }
+  .settings-row {
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row .lbl {
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .settings-row .sub {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.12em;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+  .settings-row .val {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber-soft);
+  }
+  .toggle {
+    width: 34px; height: 20px;
+    background: var(--rule);
+    border-radius: 10px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--amber); }
+  .toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: var(--ink);
+    border-radius: 50%;
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 16px; background: #1f1708; }
+
+  /* ========== ACT 4: DESKTOP ========== */
+  .desktop-frame {
+    margin-top: 56px;
+    background: #0a0a08;
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 30px 70px rgba(0,0,0,0.6);
+  }
+  .desktop-bar {
+    display: flex;
+    gap: 6px;
+    padding: 6px 10px;
+    align-items: center;
+  }
+  .desktop-bar .ddot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--surface-3);
+  }
+  .desktop-bar .url {
+    flex: 1;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-quiet);
+    text-align: center;
+    padding: 4px 12px;
+    background: var(--surface);
+    border-radius: 6px;
+    margin: 0 40px;
+    letter-spacing: 0.02em;
+  }
+  .desktop-bar .url em { color: var(--amber); font-style: normal; }
+  .desktop-app {
+    background: var(--bg);
+    border-radius: 8px;
+    overflow: hidden;
+    min-height: 620px;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+  }
+
+  .sidenav {
+    background: var(--surface);
+    border-right: 1px solid var(--rule-soft);
+    padding: 22px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .sidenav-brand {
+    font-family: var(--serif);
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .sidenav-brand em { color: var(--amber); font-style: italic; }
+  .sidenav-section {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .sidenav-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 10px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+  }
+  .sidenav-item.active {
+    background: var(--surface-3);
+    color: var(--ink);
+    border-left: 2px solid var(--amber);
+  }
+  .sidenav-item .count {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-quiet);
+  }
+  .sidenav-item .count.hot {
+    color: var(--amber);
+    background: var(--amber-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .main {
+    padding: 24px 32px;
+    overflow: hidden;
+  }
+  .main-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--rule-soft);
+    margin-bottom: 22px;
+  }
+  .main-head .eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .main-head .eyebrow .sep { color: var(--amber); margin: 0 6px; }
+  .main-head h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 28px;
+    letter-spacing: -0.015em;
+  }
+  .main-head h2 em { font-style: italic; color: var(--amber); }
+  .main-head .regime-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--surface);
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+  }
+  .main-head .regime-pill::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 8px var(--sage);
+  }
+
+  .metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .metric {
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+  }
+  .metric .k {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .metric .v {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 24px;
+    letter-spacing: -0.015em;
+    line-height: 1;
+    font-variation-settings: "opsz" 144;
+  }
+  .metric .v .unit { font-size: 12px; color: var(--ink-dim); font-style: italic; margin-left: 3px; }
+  .metric .change {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--sage);
+    margin-top: 6px;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 22px;
+  }
+  .col-head {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .col-head .count-word {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .trade-row {
+    display: grid;
+    grid-template-columns: 70px 1fr auto auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    font-size: 12px;
+  }
+  .trade-row:last-child { border-bottom: none; }
+  .trade-ticker {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .trade-ticker .sub {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    font-weight: 400;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .trade-desc {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.3;
+  }
+  .trade-desc em {
+    color: var(--ink);
+    font-style: normal;
+    font-weight: 500;
+  }
+  .trade-amount {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    text-align: right;
+  }
+  .trade-amount .sub {
+    display: block;
+    font-size: 8px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+  }
+  .trade-status {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    color: var(--teal-soft);
+    text-transform: uppercase;
+    padding: 4px 7px;
+    background: var(--teal-bg);
+    border-radius: 3px;
+  }
+  .trade-status.pending { color: var(--amber-soft); background: var(--amber-bg); }
+
+  .signal-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .signal-row:last-child { border-bottom: none; }
+  .signal-row .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .signal-row .ticker {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--amber);
+  }
+  .signal-row .mat {
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+  }
+  .signal-row .head-t {
+    font-size: 12px;
+    color: var(--ink);
+    line-height: 1.35;
+    font-weight: 500;
+  }
+  .signal-row .src {
+    margin-top: 3px;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Desktop: Trace viewer page */
+  .trace-screen .main-head h2 { font-size: 24px; }
+  .trace-viewer {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 20px;
+  }
+  .trace-list {
+    border-right: 1px solid var(--rule);
+    padding-right: 18px;
+  }
+  .trace-list-item {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-soft);
+    cursor: pointer;
+  }
+  .trace-list-item.active { }
+  .trace-list-item .tid {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+  }
+  .trace-list-item .desc {
+    font-size: 12px;
+    color: var(--ink);
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .trace-list-item .meta {
+    margin-top: 3px;
+    font-family: var(--mono);
+    font-size: 8px;
+    color: var(--ink-quiet);
+    letter-spacing: 0.1em;
+    display: flex;
+    gap: 10px;
+  }
+
+  .trace-detail { }
+  .trace-detail-head {
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 16px;
+  }
+  .trace-detail-head .tid {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 0.15em;
+  }
+  .trace-detail-head h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-top: 4px;
+  }
+  .trace-detail-head h3 em { font-style: italic; }
+
+  .span-tree {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+    padding: 12px 14px;
+    line-height: 1.8;
+  }
+  .span-tree .line {
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .span-tree .name { color: var(--amber-soft); }
+  .span-tree .name.sage { color: var(--sage); }
+  .span-tree .name.teal { color: var(--teal-soft); }
+  .span-tree .bar-col {
+    height: 4px;
+    background: var(--rule);
+    border-radius: 2px;
+    position: relative;
+  }
+  .span-tree .bar-col::after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    background: var(--amber);
+    border-radius: 2px;
+    top: 0;
+  }
+  .span-tree .bar-col.sage::after { background: var(--sage); }
+  .span-tree .bar-col.teal::after { background: var(--teal); }
+  .span-tree .dur { color: var(--ink-quiet); font-size: 9px; text-align: right; }
+
+  /* Desktop: Backtest */
+  .backtest-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 18px;
+  }
+  .backtest-head .kv {
+    display: flex;
+    gap: 22px;
+    margin-top: 10px;
+  }
+  .backtest-head .kv > div .k {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .backtest-head .kv > div .v {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-top: 2px;
+  }
+  .backtest-head .kv > div .v.sage { color: var(--sage); }
+
+  .chart-frame {
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-md);
+    height: 280px;
+  }
+
+  /* ========== TYPE & COLOR ========== */
+  .type-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    margin-top: 40px;
+  }
+  .type-sample {
+    padding: 28px 24px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: var(--r-lg);
+  }
+  .type-sample .kind {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .type-sample .display {
+    font-family: var(--serif);
+    font-size: 52px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    font-variation-settings: "opsz" 144;
+  }
+  .type-sample .display em { font-style: italic; color: var(--amber); }
+  .type-sample .mid {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--ink);
+    margin: 8px 0;
+  }
+  .type-sample .small {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .type-sample .para {
+    margin-top: 14px;
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+  }
+  .type-sample .num {
+    font-family: var(--mono);
+    font-size: 36px;
+    color: var(--teal-soft);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .palette {
+    margin-top: 32px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+  .swatch {
+    aspect-ratio: 1;
+    border-radius: var(--r-md);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border: 1px solid var(--rule-soft);
+  }
+  .swatch .n {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .swatch .hex {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+  }
+  .sw-bg { background: var(--bg); color: var(--ink); }
+  .sw-surface { background: var(--surface); color: var(--ink); }
+  .sw-amber { background: var(--amber); color: #1f1708; }
+  .sw-teal { background: var(--teal); color: #0d2520; }
+  .sw-cream { background: var(--cream); color: #2a2a22; }
+  .sw-sage { background: var(--sage); color: #1d2a19; }
+
+  /* ========== FOOTER ========== */
+  .footer {
+    margin-top: 160px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+  }
+  .footer .big {
+    font-family: var(--serif);
+    font-size: 42px;
+    font-style: italic;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    font-variation-settings: "opsz" 144;
+  }
+
+  /* Responsive */
+  @media (max-width: 1400px) {
+    .screens-row { grid-template-columns: repeat(3, 1fr); gap: 36px; }
+  }
+  @media (max-width: 1100px) {
+    .screens-row, .screens-row.three { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    .type-col { grid-template-columns: 1fr; }
+    .palette { grid-template-columns: repeat(3, 1fr); }
+    .desktop-app { grid-template-columns: 1fr; }
+    .sidenav { display: none; }
+    .split { grid-template-columns: 1fr; }
+    .metrics-row { grid-template-columns: repeat(2, 1fr); }
+    .trace-viewer { grid-template-columns: 1fr; }
+    .trace-list { border-right: none; padding-right: 0; border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
+    .toc { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .shell { padding: 40px 20px 80px; }
+    .masthead { grid-template-columns: 1fr; gap: 30px; }
+    .meta-col { text-align: left; }
+    .wordmark .lede, .wordmark .mark { font-size: 44px; }
+    .intro { grid-template-columns: 1fr; gap: 24px; }
+    .intro .body h1 { font-size: 32px; }
+    .act { grid-template-columns: 1fr; gap: 12px; }
+    .screens-row, .screens-row.three { grid-template-columns: 1fr; }
+    .metrics-row { grid-template-columns: 1fr 1fr; }
+    .toc { grid-template-columns: 1fr; }
+  }
+
+  .fade-up {
+    animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ======================= MASTHEAD ======================= -->
+<header class="masthead fade-up">
+  <div>
+    <div class="wordmark">
+      <span class="lede">folio</span><span class="dot"></span><span class="mark">e8e</span>
+    </div>
+    <div class="tagline">
+      Design Walkthrough <span class="sep">/</span> v2.1 <span class="sep">/</span> Product Surface Map <span class="sep">/</span> MVP Scope
+    </div>
+  </div>
+  <div class="meta-col">
+    <div><strong>Screens</strong> — 20 across 4 acts</div>
+    <div><strong>Surfaces</strong> — Mobile · Web · Lock-screen · System</div>
+    <div><strong>For</strong> — Designers · Engineers · Stakeholders</div>
+  </div>
+</header>
+
+<!-- ======================= INTRO ======================= -->
+<section class="intro fade-up" style="animation-delay: 0.1s">
+  <div class="label">Overview</div>
+  <div class="body">
+    <h1>The <em>entire MVP</em>, on one page.</h1>
+    <p>This walkthrough shows the full folio.e8e product surface in design-quality detail — from first-run onboarding to the retrospective after a trade. Every screen is built from the same component vocabulary, the same type system, and the same color semantics, so the product reads as a coherent whole rather than a collection of features.</p>
+    <p>Use it as a shared reference. Designers will extract tokens and patterns into a real Figma system. Engineers will use it to understand what they are building toward. Stakeholders will see the finished shape before a line of production code is written.</p>
+
+    <div class="toc">
+      <a href="#act-1"><span class="num">I.</span>First run</a>
+      <a href="#act-2"><span class="num">II.</span>The everyday</a>
+      <a href="#act-3"><span class="num">III.</span>Transparency</a>
+      <a href="#act-4"><span class="num">IV.</span>Desktop</a>
+      <a href="#act-5"><span class="num">V.</span>System</a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= ACT 1: ONBOARDING ======================= -->
+<section id="act-1">
+<div class="act fade-up">
+  <div class="num"><span>Act I</span> — First run</div>
+  <div class="title">Meet the <em>agent</em>, connect the broker.</div>
+  <div class="caption">5 screens · ~90 seconds</div>
+</div>
+<p class="act-lead">Onboarding has one job: take a user from curious to running their first agent in under two minutes. A brief pitch, a five-question personalization, broker connection, agent configuration, confirmation. No clutter, no menus, no 30-page terms scroll.</p>
+
+<div class="screens-row">
+
+  <!-- 01: SPLASH -->
+  <div class="fade-up">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:42</span><span>●●●</span></div>
+      <div class="splash">
+        <div class="big-wordmark">
+          <div class="w">folio<em>.e8e</em></div>
+          <div class="sub">Infinite excellence · est. 2026</div>
+        </div>
+        <div class="pitch">Run a disciplined trading strategy. Let a thoughtful agent handle the mechanics. Keep the reasoning in sight.</div>
+        <div class="splash-cta">
+          <button class="btn btn-primary">Begin</button>
+          <button class="btn btn-ghost">I already have an account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">01</div><div class="phone-title"><em>Splash</em></div></div>
+    <div class="context">FIRST OPEN</div>
+  </div>
+  </div>
+
+  <!-- 02: VALUE PROP -->
+  <div class="fade-up" style="animation-delay: 0.05s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:42</span><span>●●●</span></div>
+      <div class="value-screen">
+        <div class="dots"><span></span><span class="active"></span><span></span><span></span></div>
+        <div class="chap">Chapter 02 of 04</div>
+        <h2>Every decision is <em>shown</em>, not hidden.</h2>
+        <p class="descr">When the agent proposes a trade, you see why — the signals it used, the constraints it checked, the reasoning in its own words. You can approve, halve the size, or reject with a note that teaches it.</p>
+        <div class="illust-frame">
+          <svg viewBox="0 0 200 120" width="100%">
+            <defs>
+              <linearGradient id="gl" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#d4a25e" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#d4a25e" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <rect x="20" y="20" width="160" height="80" rx="8" fill="url(#gl)" stroke="#d4a25e" stroke-width="1"/>
+            <text x="100" y="50" text-anchor="middle" fill="#d4a25e" font-family="Fraunces" font-style="italic" font-size="14">Agent proposes</text>
+            <text x="100" y="70" text-anchor="middle" fill="#b8b4a7" font-family="JetBrains Mono" font-size="9" letter-spacing="1">3 SIGNALS · 4 CHECKS · 21 DTE</text>
+            <text x="100" y="90" text-anchor="middle" fill="#6fb3a4" font-family="JetBrains Mono" font-size="9" letter-spacing="1">+$214 PREMIUM</text>
+          </svg>
+        </div>
+        <button class="btn btn-primary">Continue</button>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">02</div><div class="phone-title"><em>Value prop</em></div></div>
+    <div class="context">ONBOARDING · 4 CHAPTERS</div>
+  </div>
+  </div>
+
+  <!-- 03: Q&A -->
+  <div class="fade-up" style="animation-delay: 0.1s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:43</span><span>●●●</span></div>
+      <div class="app">
+        <div class="progress"><div class="progress-fill" style="width: 40%"></div></div>
+        <div class="qa">
+          <div class="step-meta">Question <span class="n">02</span> of 05</div>
+          <h3>How much <em>capital</em> will you paper-trade?</h3>
+          <div class="sub">This sets position sizing for your agent. You can change it later.</div>
+          <div class="qa-options">
+            <div class="qa-opt">
+              <span>Under $10,000</span>
+              <span class="hint">Learner</span>
+            </div>
+            <div class="qa-opt active">
+              <span>$10,000 – $100,000</span>
+              <span class="hint">Standard</span>
+            </div>
+            <div class="qa-opt">
+              <span>$100,000 – $500,000</span>
+              <span class="hint">Active</span>
+            </div>
+            <div class="qa-opt">
+              <span>Over $500,000</span>
+              <span class="hint">Pro</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary">Next question</button>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">03</div><div class="phone-title"><em>Personalize</em></div></div>
+    <div class="context">5-QUESTION FLOW</div>
+  </div>
+  </div>
+
+  <!-- 04: BROKER CONNECT -->
+  <div class="fade-up" style="animation-delay: 0.15s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:44</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Connect <em>Alpaca</em></div>
+          <div class="date">Step 4 of 5</div>
+        </div>
+        <div class="broker-body">
+          <div class="broker-logo">
+            <div class="lbox">α</div>
+            <div class="meta">
+              <div class="name">Alpaca Paper</div>
+              <div class="sub">Bring your own key · Revocable anytime</div>
+            </div>
+          </div>
+          <div class="broker-input">
+            <label>API Key ID</label>
+            <input value="PKRTX••••••••••••••••8Q4M" readonly />
+          </div>
+          <div class="broker-input">
+            <label>Secret Key</label>
+            <input value="••••••••••••••••••••••••••••••••" readonly />
+          </div>
+          <div class="security-bullet">
+            <div class="st">Encrypted at rest</div>
+            <div class="desc">Your keys are envelope-encrypted with AWS KMS, never logged, and never sent to language models. Revoke in Alpaca at any time.</div>
+          </div>
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 6px;">
+            <button class="btn btn-primary">Verify &amp; continue</button>
+            <button class="btn btn-ghost">I don't have Alpaca yet</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">04</div><div class="phone-title"><em>Broker</em></div></div>
+    <div class="context">BYOK · PAPER ONLY</div>
+  </div>
+  </div>
+
+</div>
+
+<div class="screens-row three" style="margin-top: 56px;">
+
+  <!-- 05: AGENT CONFIG -->
+  <div class="fade-up">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:45</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Set up <em>the Wheel</em></div>
+          <div class="date">Step 5 of 5</div>
+        </div>
+        <div class="agent-config">
+          <div class="config-section">
+            <div class="config-label">Ticker to wheel</div>
+            <div class="ticker-pick">
+              <div>
+                <div class="t-sym">AAPL</div>
+                <div class="t-name">Apple Inc.</div>
+              </div>
+              <div class="t-price">$238.42<span class="sub">+0.81%</span></div>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <div class="config-label">Position size</div>
+            <div class="slider-chip-row">
+              <div class="slider-chip">10%<span class="lbl">Cautious</span></div>
+              <div class="slider-chip active">25%<span class="lbl">Standard</span></div>
+              <div class="slider-chip">40%<span class="lbl">Active</span></div>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <div class="config-label">Approval</div>
+            <div class="slider-chip-row">
+              <div class="slider-chip active">Ask me<span class="lbl">Each trade</span></div>
+              <div class="slider-chip">Auto<span class="lbl">Under $200</span></div>
+              <div class="slider-chip">Auto all<span class="lbl">Phase 2</span></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary">Launch agent</button>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">05</div><div class="phone-title"><em>Configure</em></div></div>
+    <div class="context">WHEEL · AAPL · 25% · ASK</div>
+  </div>
+  </div>
+
+  <!-- 06: WELCOME / EMPTY-TURNED-READY -->
+  <div class="fade-up" style="animation-delay: 0.05s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:46</span><span>●●●</span></div>
+      <div class="splash">
+        <div class="big-wordmark" style="margin-top: 40px;">
+          <div class="sub" style="margin-bottom: 20px;">You're set up —</div>
+          <div class="w" style="font-size: 40px;">The <em>Wheel</em>,<br/>on AAPL.</div>
+          <div class="sub" style="margin-top: 20px;">Agent deployed · Paper mode</div>
+        </div>
+        <div style="padding: 16px; background: var(--surface); border: 1px solid var(--rule-soft); border-radius: var(--r-md); font-family: var(--serif); font-style: italic; font-size: 13px; line-height: 1.5; color: var(--ink-dim); text-align: center;">
+          Your agent is now watching the market. It will reach out when it sees a trade worth proposing. Usually within a trading day.
+        </div>
+        <div class="splash-cta">
+          <button class="btn btn-primary">Take me home</button>
+          <button class="btn btn-ghost">Read the Wheel in 3 minutes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">06</div><div class="phone-title"><em>Deployed</em></div></div>
+    <div class="context">READY STATE</div>
+  </div>
+  </div>
+
+  <!-- 07: EMPTY HOME, WAITING -->
+  <div class="fade-up" style="animation-delay: 0.1s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">11:02</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Quiet <em>start</em></div>
+          <div class="date">Fri · Day 1 · 11:02 ET</div>
+        </div>
+
+        <div class="card portfolio">
+          <div class="card-label">Paper portfolio <span class="pill teal">Live</span></div>
+          <div class="value"><span class="currency">$</span>100,000<span style="font-size:18px;color:var(--ink-dim);font-style:italic;">.00</span></div>
+          <div class="delta"><span class="muted">Starting balance · no positions yet</span></div>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-header">
+            <div>
+              <div class="agent-name">The <em>Wheel</em>,</div>
+              <div class="agent-sub">Watching AAPL · Day 1</div>
+            </div>
+            <div class="health-chip"><span class="health-dot"></span>Healthy</div>
+          </div>
+          <div class="agent-body">
+            Waiting for a good entry. AAPL is trading at <em>$238.42</em>. The agent is looking for a strike near <span class="ticker">$215</span> within 14–45 days.
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px 10px; font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink-dim); line-height: 1.5;">
+          The Wheel is a patient strategy. Most days, nothing happens. We'll notify you the moment something changes.
+        </div>
+
+        <div class="dock">
+          <button class="active">Home</button>
+          <button>Agents</button>
+          <button>Decisions</button>
+          <button>You</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">07</div><div class="phone-title"><em>Waiting</em></div></div>
+    <div class="context">DAY 1 · NO DECISIONS YET</div>
+  </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ======================= ACT 2: EVERYDAY ======================= -->
+<section id="act-2">
+<div class="act fade-up">
+  <div class="num"><span>Act II</span> — The everyday</div>
+  <div class="title">Adaptive home, <em>decisions</em>, closings.</div>
+  <div class="caption">5 screens · typical week</div>
+</div>
+<p class="act-lead">This is where the user spends most of their time. The home screen is composed per-open by a Haiku-tier model based on market regime, portfolio state, and what the agent is doing right now. Pre-market looks different from mid-session; mid-session with a proposal looks different from mid-session without one.</p>
+
+<div class="screens-row">
+
+  <!-- 08: PRE-MARKET HOME -->
+  <div class="fade-up">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">06:48</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Morning <em>brief</em></div>
+          <div class="date">Mon · 22 Apr · Pre-open 2h 42m</div>
+        </div>
+
+        <div class="regime-banner">
+          <div>
+            <div class="lbl">Regime today</div>
+            <div class="msg">Low-vol uptrend holds. Futures flat.</div>
+          </div>
+          <div class="ico">↑</div>
+        </div>
+
+        <div class="card portfolio">
+          <div class="card-label">Paper portfolio <span class="pill">Pre-market</span></div>
+          <div class="value"><span class="currency">$</span>104,218<span style="font-size:18px;color:var(--ink-dim);font-style:italic;">.46</span></div>
+          <div class="delta">
+            <span>↑ +$4,218</span>
+            <span class="muted">· +4.22% · since start</span>
+          </div>
+          <svg class="sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <path d="M0,36 L20,34 L40,38 L60,30 L80,32 L100,28 L120,22 L140,24 L160,18 L180,20 L200,14 L220,16 L240,10 L260,12 L280,8 L300,6"
+              stroke="var(--teal)" stroke-width="1.5" fill="none" />
+          </svg>
+        </div>
+
+        <div class="card" style="background: transparent; border: 1px dashed var(--rule); border-radius: var(--r-lg);">
+          <div class="card-label">On your calendar today</div>
+          <div style="font-family: var(--serif); font-size: 14px; color: var(--ink); line-height: 1.5;">
+            <strong style="color: var(--amber);">13:30 ET</strong> — Fed minutes<br/>
+            <strong style="color: var(--ink-dim);">After close</strong> — NFLX earnings
+          </div>
+          <div style="margin-top: 8px; font-family: var(--mono); font-size: 9px; color: var(--ink-quiet); letter-spacing: 0.12em; text-transform: uppercase;">Agent is aware · Wheel not affected</div>
+        </div>
+
+        <div class="dock">
+          <button class="active">Home</button>
+          <button>Agents</button>
+          <button>Decisions</button>
+          <button>You</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">08</div><div class="phone-title"><em>Pre-market</em></div></div>
+    <div class="context">DIFFERENT COMPOSITION · SAME GRAMMAR</div>
+  </div>
+  </div>
+
+  <!-- 09: MID-SESSION HOME -->
+  <div class="fade-up" style="animation-delay: 0.05s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:42</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Morning, <em>Samin</em></div>
+          <div class="date">Thu · 18 Apr · NYSE open</div>
+        </div>
+
+        <div class="card portfolio">
+          <div class="card-label">Paper portfolio <span class="pill teal">Live</span></div>
+          <div class="value"><span class="currency">$</span>104,218<span style="font-size:18px;color:var(--ink-dim);font-style:italic;">.46</span></div>
+          <div class="delta">
+            <span>↑ +$842.20</span>
+            <span class="muted">· +0.81% · since open</span>
+          </div>
+          <svg class="sparkline" viewBox="0 0 300 48" preserveAspectRatio="none">
+            <path d="M0,36 L20,34 L40,38 L60,32 L80,34 L100,28 L120,30 L140,22 L160,24 L180,16 L200,20 L220,12 L240,14 L260,8 L280,10 L300,6"
+              stroke="var(--teal)" stroke-width="1.5" fill="none" />
+          </svg>
+        </div>
+
+        <div class="card agent-card">
+          <div class="agent-header">
+            <div>
+              <div class="agent-name">The <em>Wheel</em>,</div>
+              <div class="agent-sub">On AAPL · Day 14 on paper</div>
+            </div>
+            <div class="health-chip"><span class="health-dot"></span>Healthy</div>
+          </div>
+          <div class="agent-body">
+            Holding <em>1× AAPL 220P</em> expiring <span class="ticker">May 09</span>. Market above strike by 8.4% — quietly collecting theta.
+          </div>
+          <div class="agent-meta">
+            <div><div class="k">Premium</div><div class="v">+$184</div></div>
+            <div><div class="k">Delta</div><div class="v">−0.18</div></div>
+            <div><div class="k">DTE</div><div class="v">21</div></div>
+          </div>
+        </div>
+
+        <div class="news-card">
+          <div class="card-label">Signals <span class="pill">3</span></div>
+          <div class="news-item">
+            <div class="news-score">72<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">MS reiterates overweight on AAPL</span>
+              <div class="tag">Analyst · Bullish · 0.7σ</div>
+            </div>
+            <div class="news-time">09:12</div>
+          </div>
+          <div class="news-item">
+            <div class="news-score teal">65<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">Earnings in 16 days — outside blackout</span>
+              <div class="tag">Calendar · Acknowledged</div>
+            </div>
+            <div class="news-time">06:00</div>
+          </div>
+        </div>
+
+        <div class="dock">
+          <button class="active">Home</button>
+          <button>Agents</button>
+          <button>Decisions</button>
+          <button>You</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">09</div><div class="phone-title"><em>Mid-session</em></div></div>
+    <div class="context">ADAPTIVE HOME · NO PENDING</div>
+  </div>
+  </div>
+
+  <!-- 10: PUSH NOTIF -->
+  <div class="fade-up" style="animation-delay: 0.1s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:43</span><span>●●●</span></div>
+      <div class="lock-screen">
+        <div class="lock-time">
+          <div class="t">10:43</div>
+          <div class="d">Thu 18 April</div>
+        </div>
+        <div class="push-notif">
+          <div class="top">
+            <span class="ico">f</span>
+            <span class="app-n">folio.e8e</span>
+            <span class="when">now</span>
+          </div>
+          <div class="headline">The <em>Wheel</em> wants to sell a put on AAPL.</div>
+          <div class="body-t">$218 strike · 21 DTE · +$214 premium. All constraints pass. You set "ask me."</div>
+          <div class="push-notif-actions">
+            <button class="approve">Approve</button>
+            <button class="review">Review</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">10</div><div class="phone-title"><em>Push</em></div></div>
+    <div class="context">LOCK SCREEN · 1-TAP APPROVE</div>
+  </div>
+  </div>
+
+  <!-- 11: DECISION CARD -->
+  <div class="fade-up" style="animation-delay: 0.15s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:43</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Decision <em>pending</em></div>
+          <div class="date">Tap reviewed in 4:32</div>
+        </div>
+        <div class="decision-hero">
+          <div class="decision-urgent">Agent proposes · needs you</div>
+          <div class="decision-title">Sell one <em>cash-secured put</em> on AAPL.</div>
+          <div class="decision-trade">
+            <div class="row"><span class="k">Strike</span><span class="v big">$218</span></div>
+            <div class="row"><span class="k">Expiration</span><span class="v">09 May · 21 DTE</span></div>
+            <div class="row"><span class="k">Premium est.</span><span class="v big">+$214</span></div>
+            <div class="row"><span class="k">Cash reserved</span><span class="v">$21,800</span></div>
+            <div class="row"><span class="k">Delta</span><span class="v">−0.26</span></div>
+          </div>
+          <div class="decision-reason">
+            AAPL is in a low-vol uptrend with analyst support. Strike sits 8% below spot, outside the earnings blackout. Collecting premium here is consistent with the Wheel charter.
+          </div>
+          <div class="decision-signals">
+            <span class="signal-chip">MS Overweight</span>
+            <span class="signal-chip">VIX 18.4</span>
+            <span class="signal-chip">No Earnings</span>
+          </div>
+          <div class="constraint-row">
+            <div class="constraint-chip">Position ≤ 25%</div>
+            <div class="constraint-chip">Delta in range</div>
+            <div class="constraint-chip">Earnings clear</div>
+            <div class="constraint-chip">Cash reserved</div>
+          </div>
+        </div>
+        <div class="approve-stack">
+          <button class="btn btn-primary">Approve &amp; execute</button>
+          <button class="btn btn-secondary">Halve the size</button>
+          <button class="btn btn-ghost">Skip — tell agent why</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">11</div><div class="phone-title"><em>Decision</em></div></div>
+    <div class="context">HUMAN-IN-LOOP · TTL 4M 32S</div>
+  </div>
+  </div>
+
+</div>
+
+<div class="screens-row three" style="margin-top: 56px;">
+
+  <!-- 12: POST-TAP CONFIRMATION -->
+  <div class="fade-up">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:44</span><span>●●●</span></div>
+      <div class="splash" style="justify-content: space-around;">
+        <div></div>
+        <div style="text-align: center;">
+          <div style="width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 50%; background: var(--teal-bg); border: 1px solid var(--teal); display: flex; align-items: center; justify-content: center;">
+            <span style="font-family: var(--serif); font-size: 32px; color: var(--teal); font-style: italic;">✓</span>
+          </div>
+          <div style="font-family: var(--serif); font-size: 26px; font-weight: 400; letter-spacing: -0.015em;">
+            Order <em style="color: var(--teal); font-style: italic;">filled</em>.
+          </div>
+          <div style="margin-top: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; color: var(--ink-quiet); text-transform: uppercase;">1× AAPL 218P · 09 May</div>
+          <div style="margin-top: 4px; font-family: var(--serif); font-size: 22px; color: var(--teal-soft); font-weight: 500;">+$214.00</div>
+          <div style="margin-top: 20px; font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--ink-dim); padding: 0 20px; line-height: 1.5;">
+            The agent will monitor this position and notify you if conditions change. Usually quiet until expiration.
+          </div>
+        </div>
+        <div class="splash-cta">
+          <button class="btn btn-primary">Done</button>
+          <button class="btn btn-ghost">See full trace</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">12</div><div class="phone-title"><em>Filled</em></div></div>
+    <div class="context">POST-APPROVAL · RECONCILED</div>
+  </div>
+  </div>
+
+  <!-- 13: RETROSPECTIVE -->
+  <div class="fade-up" style="animation-delay: 0.05s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">16:01</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">The <em>close</em></div>
+          <div class="date">Retrospective · 09 May</div>
+        </div>
+        <div class="retro-hero">
+          <div class="stamp">Expired worthless · premium kept</div>
+          <div class="amount"><span class="sign">+</span>$214</div>
+          <div class="subtitle">Premium captured in 21 days. Cycle complete.</div>
+        </div>
+        <div class="retro-timeline">
+          <div class="retro-step">
+            <div class="when">APR 18</div>
+            <div class="what"><strong>Sold</strong> 1× AAPL 218P. You approved in 42s.</div>
+          </div>
+          <div class="retro-step">
+            <div class="when">APR 22</div>
+            <div class="what">AAPL rallied to <strong>$238</strong>. Position 52% profit.</div>
+          </div>
+          <div class="retro-step">
+            <div class="when">MAY 02</div>
+            <div class="what">Earnings passed quietly. <span class="money">+$142 unreal</span>.</div>
+          </div>
+          <div class="retro-step">
+            <div class="when">MAY 09</div>
+            <div class="what">Contract expired — <strong>full premium captured</strong>.</div>
+          </div>
+        </div>
+        <div class="retro-lesson">
+          Selling below the analyst re-rating worked; however, premium was lower than the 30-day average for this delta. Next cycle, I will wait for IV ≥ 28% before selling the next put.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">13</div><div class="phone-title"><em>Retrospective</em></div></div>
+    <div class="context">POST-TRADE · AGENT-AUTHORED</div>
+  </div>
+  </div>
+
+  <!-- 14: AGENT DETAIL -->
+  <div class="fade-up" style="animation-delay: 0.1s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">14:18</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Agent <em>detail</em></div>
+          <div class="date">Wheel · AAPL</div>
+        </div>
+        <div class="agent-detail-hero">
+          <div class="name">The <em>Wheel</em>,</div>
+          <div class="tagline-small">On AAPL · Day 14 on paper</div>
+          <div class="health-big">Healthy · within envelope</div>
+          <div class="mini-stats">
+            <div class="mini-stat"><div class="v teal">$1,842</div><div class="k">Premium</div></div>
+            <div class="mini-stat"><div class="v">6</div><div class="k">Cycles</div></div>
+            <div class="mini-stat"><div class="v teal">+4.2%</div><div class="k">MTD</div></div>
+          </div>
+        </div>
+        <div style="padding: 10px 2px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; color: var(--ink-quiet); text-transform: uppercase;">Activity last 30 days</div>
+        <div class="activity-bar">
+          <div class="bar" style="height: 20%"></div>
+          <div class="bar active" style="height: 80%"></div>
+          <div class="bar" style="height: 10%"></div>
+          <div class="bar active" style="height: 60%"></div>
+          <div class="bar" style="height: 30%"></div>
+          <div class="bar" style="height: 15%"></div>
+          <div class="bar active" style="height: 90%"></div>
+          <div class="bar" style="height: 25%"></div>
+          <div class="bar" style="height: 10%"></div>
+          <div class="bar active" style="height: 70%"></div>
+          <div class="bar" style="height: 40%"></div>
+          <div class="bar" style="height: 20%"></div>
+          <div class="bar active" style="height: 85%"></div>
+          <div class="bar" style="height: 30%"></div>
+          <div class="bar pending" style="height: 65%"></div>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: auto;">
+          <button class="btn btn-secondary" style="flex: 1;">Pause</button>
+          <button class="btn btn-secondary" style="flex: 1;">Edit config</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">14</div><div class="phone-title"><em>Detail</em></div></div>
+    <div class="context">PER-AGENT VIEW · HEALTH</div>
+  </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ======================= ACT 3: TRANSPARENCY ======================= -->
+<section id="act-3">
+<div class="act fade-up">
+  <div class="num"><span>Act III</span> — Transparency</div>
+  <div class="title">Explain, <em>inspect</em>, halt.</div>
+  <div class="caption">4 screens · trust moments</div>
+</div>
+<p class="act-lead">These screens exist for the moments users need to verify, question, or intervene. The explain-this-decision view surfaces the agent's reasoning trace in human language. The signals feed shows the firehose the agent drinks from. The kill switch is always reachable in one tap. Settings let users tighten the agent without loosening it past safe defaults.</p>
+
+<div class="screens-row">
+
+  <!-- 15: EXPLAIN -->
+  <div class="fade-up">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">14:22</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Why this <em>trade</em>?</div>
+          <div class="date">Decision #dx_8A42</div>
+        </div>
+        <div class="explain">
+          <div class="explain-header">
+            <h3>The Wheel sold AAPL 218P at <em>10:44 ET</em>.</h3>
+            <div class="sub">Reasoning trace · 4.2s total</div>
+          </div>
+
+          <div class="trace-steps">
+            <div class="trace-step sage">
+              <div class="label">01 · Context</div>
+              <div class="body">Portfolio flat in AAPL. Cash <strong>$25,000</strong>. VIX <span class="mono">18.4</span>. Low-vol uptrend regime.</div>
+            </div>
+            <div class="trace-step">
+              <div class="label">02 · Signals</div>
+              <div class="body">3 signals above materiality 0.6: <strong>MS overweight</strong> (0.72), insider buy Form 4 (0.65), VIX calm (0.58).</div>
+            </div>
+            <div class="trace-step">
+              <div class="label">03 · Reasoning</div>
+              <div class="body">Agent chose strike <span class="mono">$218</span> (−0.26 delta, 8.3% below spot) expiring <span class="mono">May 09</span>. Outside earnings blackout by 7 days.</div>
+            </div>
+            <div class="trace-step teal">
+              <div class="label">04 · Constraints</div>
+              <div class="body">All 4 passed: position ≤25%, delta range, earnings clear, cash reserved.</div>
+            </div>
+            <div class="trace-step teal">
+              <div class="label">05 · Executed</div>
+              <div class="body">Filled at <strong>$2.14</strong> per contract. +$214 premium.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">15</div><div class="phone-title"><em>Explain</em></div></div>
+    <div class="context">FULL TRACE · HUMAN READABLE</div>
+  </div>
+  </div>
+
+  <!-- 16: SIGNALS FEED -->
+  <div class="fade-up" style="animation-delay: 0.05s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">11:22</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">Signals <em>feed</em></div>
+          <div class="date">On your watchlist</div>
+        </div>
+        <div class="signals-feed-head">
+          <div class="title">Today · <em>28 signals</em></div>
+          <div class="count">Mat ≥ 0.5</div>
+        </div>
+
+        <div class="news-card" style="border-top: none; padding-top: 4px;">
+          <div class="news-item">
+            <div class="news-score">72<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">MS reiterates overweight on AAPL, PT $260</span>
+              <div class="tag">AAPL · Benzinga · Analyst · 09:12</div>
+            </div>
+          </div>
+          <div class="news-item">
+            <div class="news-score">68<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">Form 4: Director purchases 5,000 shares at $220.30</span>
+              <div class="tag">AAPL · EDGAR · Insider · 08:47</div>
+            </div>
+          </div>
+          <div class="news-item">
+            <div class="news-score teal">65<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">Earnings confirmed for 02 May · after close</span>
+              <div class="tag">AAPL · Calendar · 06:00</div>
+            </div>
+          </div>
+          <div class="news-item">
+            <div class="news-score rose">62<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">8-K filed: Senior leadership change</span>
+              <div class="tag">AAPL · EDGAR · Filing · 08:22</div>
+            </div>
+          </div>
+          <div class="news-item">
+            <div class="news-score">58<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">VIX holds below 20 for 5th session</span>
+              <div class="tag">SPY · Computed · Regime · 09:30</div>
+            </div>
+          </div>
+          <div class="news-item">
+            <div class="news-score">54<span class="pct">mat</span></div>
+            <div class="news-body">
+              <span class="t">JPM weekly options flow report — bullish tilt</span>
+              <div class="tag">SPY · Benzinga · Flow · 07:15</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dock">
+          <button>Home</button>
+          <button>Agents</button>
+          <button class="active">Signals</button>
+          <button>You</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">16</div><div class="phone-title"><em>Signals</em></div></div>
+    <div class="context">FEED · SCORED · DEDUPLICATED</div>
+  </div>
+  </div>
+
+  <!-- 17: KILL SWITCH -->
+  <div class="fade-up" style="animation-delay: 0.1s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">10:47</span><span>●●●</span></div>
+      <div class="kill-screen">
+        <div class="kill-icon">!</div>
+        <div class="big-title">Halt <em>all agents</em>?</div>
+        <div class="descr">Every agent will stop proposing new trades. Open positions stay open — you keep what you have, but nothing new happens until you restart.</div>
+        <div class="kill-checks">
+          <div class="r"><span>Active agents</span><span class="v">1 running</span></div>
+          <div class="r"><span>Open positions</span><span class="v">1 contract</span></div>
+          <div class="r"><span>Pending decisions</span><span class="v">0</span></div>
+          <div class="r"><span>Will take effect in</span><span class="v">&lt; 1s</span></div>
+        </div>
+        <div class="kill-actions">
+          <button class="btn btn-destructive">Halt everything now</button>
+          <button class="btn btn-secondary">Pause just the Wheel</button>
+          <button class="btn btn-ghost">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">17</div><div class="phone-title"><em>Kill switch</em></div></div>
+    <div class="context">CONFIRMATION · ONE TAP AWAY</div>
+  </div>
+  </div>
+
+  <!-- 18: SETTINGS -->
+  <div class="fade-up" style="animation-delay: 0.15s">
+  <div class="phone">
+    <div class="phone-screen">
+      <div class="statusbar"><span class="time">15:02</span><span>●●●</span></div>
+      <div class="app">
+        <div class="app-top">
+          <div class="greet">You &amp; your <em>agents</em></div>
+          <div class="date">Settings</div>
+        </div>
+        <div class="settings">
+
+          <div class="settings-group">
+            <div class="settings-group-head">Risk controls</div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">Max position size</div>
+                <div class="sub">of available cash</div>
+              </div>
+              <div class="val">25%</div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">Drawdown circuit breaker</div>
+                <div class="sub">halts all agents</div>
+              </div>
+              <div class="val">−8%</div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">VIX pause threshold</div>
+                <div class="sub">halt new puts</div>
+              </div>
+              <div class="val">35</div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-head">Approvals</div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">Ask me for every trade</div>
+                <div class="sub">recommended in MVP</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">Notifications</div>
+                <div class="sub">push · one-tap approve</div>
+              </div>
+              <div class="toggle on"></div>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <div class="settings-group-head">Your account</div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">Broker key</div>
+                <div class="sub">Alpaca paper · connected</div>
+              </div>
+              <div class="val" style="color: var(--sage);">Active</div>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="lbl">Export my data</div>
+                <div class="sub">GDPR · downloads JSON</div>
+              </div>
+              <div class="val" style="color: var(--ink-dim);">→</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="phone-caption">
+    <div><div class="label-num">18</div><div class="phone-title"><em>Settings</em></div></div>
+    <div class="context">TIGHTEN · NOT LOOSEN BEYOND MAX</div>
+  </div>
+  </div>
+
+</div>
+</section>
+
+<!-- ======================= ACT 4: DESKTOP ======================= -->
+<section id="act-4">
+<div class="act fade-up">
+  <div class="num"><span>Act IV</span> — Desktop command</div>
+  <div class="title">Same grammar, <em>broader canvas</em>.</div>
+  <div class="caption">2 screens · operator view</div>
+</div>
+<p class="act-lead">Desktop is the operator view: for the user who wants to inspect traces, review the decision log, and eventually build or tune agents. MVP ships a dashboard and a trace viewer; Phase 2 introduces the agent composer and user-facing backtesting. Both desktop screens share the same sidenav grammar for continuity.</p>
+
+<!-- DESKTOP 1: DASHBOARD -->
+<div class="desktop-frame fade-up">
+  <div class="desktop-bar">
+    <span class="ddot"></span><span class="ddot"></span><span class="ddot"></span>
+    <span class="url">folio.e8e<em>/dash</em> — Agent Runtime · Paper · Session open</span>
+  </div>
+  <div class="desktop-app">
+    <aside class="sidenav">
+      <div class="sidenav-brand">folio<em>.e8e</em></div>
+      <div>
+        <div class="sidenav-section">Workspace</div>
+        <div class="sidenav-item active">Dashboard</div>
+        <div class="sidenav-item">Agents <span class="count">1</span></div>
+        <div class="sidenav-item">Decisions <span class="count hot">2</span></div>
+        <div class="sidenav-item">Signals <span class="count">28</span></div>
+        <div class="sidenav-item">Retrospectives <span class="count">6</span></div>
+        <div class="sidenav-item">Traces</div>
+        <div class="sidenav-item">Backtest <span class="count">β</span></div>
+      </div>
+      <div>
+        <div class="sidenav-section">System</div>
+        <div class="sidenav-item">Brokerage <span class="count">Alpaca</span></div>
+        <div class="sidenav-item">Health</div>
+        <div class="sidenav-item">Settings</div>
+      </div>
+      <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--rule);">
+        <div class="sidenav-section">LLM · today</div>
+        <div style="font-family: var(--serif); font-size: 18px; font-weight: 500;">$0.41</div>
+        <div style="font-family: var(--mono); font-size: 9px; color: var(--ink-quiet); letter-spacing: 0.1em; margin-top: 2px;">of $1.00 ceiling</div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="main-head">
+        <div>
+          <div class="eyebrow">Workspace <span class="sep">/</span> Dashboard <span class="sep">/</span> Apr 18 · 10:42 ET</div>
+          <h2>Quiet morning. One <em>approval</em> awaiting you.</h2>
+        </div>
+        <div class="regime-pill">Regime: Low-vol uptrend</div>
+      </div>
+      <div class="metrics-row">
+        <div class="metric">
+          <div class="k">Paper portfolio</div>
+          <div class="v">$104,218<span class="unit">.46</span></div>
+          <div class="change">↑ +0.81% session · +4.22% month</div>
+        </div>
+        <div class="metric">
+          <div class="k">Premium collected</div>
+          <div class="v">$1,842</div>
+          <div class="change">6 cycles · 14 days</div>
+        </div>
+        <div class="metric">
+          <div class="k">Active agents</div>
+          <div class="v">1<span class="unit">of 1</span></div>
+          <div class="change">Wheel · AAPL · Healthy</div>
+        </div>
+        <div class="metric">
+          <div class="k">Decisions today</div>
+          <div class="v">4</div>
+          <div class="change">3 auto · 1 awaiting</div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="col-head">Recent decisions <span class="count-word">Last 24 hours</span></div>
+          <div class="trade-row">
+            <div class="trade-ticker">AAPL<span class="sub">Put · 218</span></div>
+            <div class="trade-desc"><em>Sell cash-secured put</em> — low-vol uptrend, analyst re-rating, 21 DTE</div>
+            <div class="trade-amount">+$214<span class="sub">premium est</span></div>
+            <div class="trade-status pending">Awaiting</div>
+          </div>
+          <div class="trade-row">
+            <div class="trade-ticker">AAPL<span class="sub">Put · 214</span></div>
+            <div class="trade-desc"><em>Expired worthless</em> — premium captured, cycle closed</div>
+            <div class="trade-amount">+$182<span class="sub">realized</span></div>
+            <div class="trade-status">Closed</div>
+          </div>
+          <div class="trade-row">
+            <div class="trade-ticker">AAPL<span class="sub">Put · 210</span></div>
+            <div class="trade-desc"><em>Closed early</em> — 50% profit threshold, new put opened</div>
+            <div class="trade-amount">+$96<span class="sub">realized</span></div>
+            <div class="trade-status">Closed</div>
+          </div>
+          <div class="trade-row">
+            <div class="trade-ticker">AAPL<span class="sub">Put · 212</span></div>
+            <div class="trade-desc"><em>Sold</em> — premium collected, agent watching</div>
+            <div class="trade-amount">+$156<span class="sub">premium</span></div>
+            <div class="trade-status">Open</div>
+          </div>
+        </div>
+        <div>
+          <div class="col-head">Live signals <span class="count-word">Mat ≥ 0.5</span></div>
+          <div class="signal-row">
+            <div class="top"><span class="ticker">AAPL</span><span class="mat">MAT 0.72</span></div>
+            <div class="head-t">MS reiterates overweight, raises PT $260.</div>
+            <div class="src">Benzinga · Analyst · 09:12</div>
+          </div>
+          <div class="signal-row">
+            <div class="top"><span class="ticker">AAPL</span><span class="mat">MAT 0.65</span></div>
+            <div class="head-t">Form 4: Director buys 5,000 shares.</div>
+            <div class="src">EDGAR · Insider · 08:47</div>
+          </div>
+          <div class="signal-row">
+            <div class="top"><span class="ticker">SPY</span><span class="mat">MAT 0.58</span></div>
+            <div class="head-t">VIX below 20 for 5th session.</div>
+            <div class="src">Regime · Computed · 09:30</div>
+          </div>
+          <div class="signal-row">
+            <div class="top"><span class="ticker">AAPL</span><span class="mat">MAT 0.51</span></div>
+            <div class="head-t">Earnings confirmed 02 May after close.</div>
+            <div class="src">Calendar · 06:00</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div style="text-align: right; margin-top: 12px; font-family: var(--mono); font-size: 10px; color: var(--ink-quiet); letter-spacing: 0.15em; text-transform: uppercase;">
+  <span style="color: var(--amber);">19</span> — Desktop · Dashboard
+</div>
+
+<!-- DESKTOP 2: TRACE VIEWER -->
+<div class="desktop-frame fade-up" style="margin-top: 48px;">
+  <div class="desktop-bar">
+    <span class="ddot"></span><span class="ddot"></span><span class="ddot"></span>
+    <span class="url">folio.e8e<em>/traces/dx_8A42F0</em> — Decision trace · Replayable</span>
+  </div>
+  <div class="desktop-app">
+    <aside class="sidenav">
+      <div class="sidenav-brand">folio<em>.e8e</em></div>
+      <div>
+        <div class="sidenav-section">Workspace</div>
+        <div class="sidenav-item">Dashboard</div>
+        <div class="sidenav-item">Agents</div>
+        <div class="sidenav-item">Decisions</div>
+        <div class="sidenav-item">Signals</div>
+        <div class="sidenav-item">Retrospectives</div>
+        <div class="sidenav-item active">Traces</div>
+      </div>
+    </aside>
+    <main class="main trace-screen">
+      <div class="main-head">
+        <div>
+          <div class="eyebrow">Traces <span class="sep">/</span> Decision dx_8A42F0 <span class="sep">/</span> Apr 18 · 10:44:17 ET</div>
+          <h2>Why the <em>Wheel</em> sold AAPL 218P.</h2>
+        </div>
+        <div class="regime-pill">Replay: identical output ✓</div>
+      </div>
+
+      <div class="trace-viewer">
+        <div class="trace-list">
+          <div class="sidenav-section" style="margin-bottom: 12px;">Recent decisions</div>
+          <div class="trace-list-item active">
+            <div class="tid">dx_8A42F0</div>
+            <div class="desc">Sell put · AAPL 218P May 09</div>
+            <div class="meta"><span>10:44:17</span><span>4.2s</span><span>$0.04</span></div>
+          </div>
+          <div class="trace-list-item">
+            <div class="tid">dx_8A3FC1</div>
+            <div class="desc">Hold · no proposal this tick</div>
+            <div class="meta"><span>10:15:03</span><span>2.1s</span><span>$0.02</span></div>
+          </div>
+          <div class="trace-list-item">
+            <div class="tid">dx_8A3E22</div>
+            <div class="desc">Close · AAPL 214P 50% profit</div>
+            <div class="meta"><span>Apr 17 · 14:02</span><span>3.8s</span><span>$0.03</span></div>
+          </div>
+          <div class="trace-list-item">
+            <div class="tid">dx_8A3B80</div>
+            <div class="desc">Hold · earnings in 14 days (clear)</div>
+            <div class="meta"><span>Apr 17 · 10:15</span><span>2.3s</span><span>$0.02</span></div>
+          </div>
+        </div>
+
+        <div class="trace-detail">
+          <div class="trace-detail-head">
+            <div class="tid">TRACE · DX_8A42F0 · SONNET 4.7 · TEMP 0</div>
+            <h3>Sell cash-secured put · AAPL <em>218</em> · 09 May</h3>
+          </div>
+
+          <div class="span-tree">
+            <div class="line">
+              <span class="name">context.assemble</span>
+              <div class="bar-col teal"><span style="--w: 8%"></span></div>
+              <span class="dur">128ms</span>
+            </div>
+            <div class="line">
+              <span class="name teal">   ↳ load.portfolio</span>
+              <div class="bar-col teal" style="opacity: 0.6;"><span></span></div>
+              <span class="dur">42ms</span>
+            </div>
+            <div class="line">
+              <span class="name teal">   ↳ query.signals</span>
+              <div class="bar-col teal" style="opacity: 0.6;"><span></span></div>
+              <span class="dur">58ms</span>
+            </div>
+            <div class="line">
+              <span class="name teal">   ↳ options.chain</span>
+              <div class="bar-col teal" style="opacity: 0.6;"><span></span></div>
+              <span class="dur">28ms</span>
+            </div>
+            <div class="line">
+              <span class="name">llm.complete</span>
+              <div class="bar-col" style="position: relative;">
+                <div style="position: absolute; height: 100%; background: var(--amber); border-radius: 2px; width: 82%;"></div>
+              </div>
+              <span class="dur">3,412ms</span>
+            </div>
+            <div class="line">
+              <span class="name sage">constraint.validate</span>
+              <div class="bar-col sage" style="position: relative;">
+                <div style="position: absolute; height: 100%; background: var(--sage); border-radius: 2px; width: 6%;"></div>
+              </div>
+              <span class="dur">82ms</span>
+            </div>
+            <div class="line">
+              <span class="name sage">   ↳ L1.structural ✓</span>
+              <span></span><span class="dur">12ms</span>
+            </div>
+            <div class="line">
+              <span class="name sage">   ↳ L2.policy ✓</span>
+              <span></span><span class="dur">24ms</span>
+            </div>
+            <div class="line">
+              <span class="name sage">   ↳ L3.simulated ✓</span>
+              <span></span><span class="dur">34ms</span>
+            </div>
+            <div class="line">
+              <span class="name sage">   ↳ L4.rate ✓</span>
+              <span></span><span class="dur">8ms</span>
+            </div>
+            <div class="line">
+              <span class="name sage">   ↳ L5.killswitch ✓</span>
+              <span></span><span class="dur">4ms</span>
+            </div>
+            <div class="line">
+              <span class="name teal">broker.submit</span>
+              <div class="bar-col teal" style="position: relative;">
+                <div style="position: absolute; height: 100%; background: var(--teal); border-radius: 2px; width: 12%;"></div>
+              </div>
+              <span class="dur">487ms</span>
+            </div>
+            <div class="line">
+              <span class="name teal">broker.reconcile</span>
+              <div class="bar-col teal" style="position: relative;">
+                <div style="position: absolute; height: 100%; background: var(--teal); border-radius: 2px; width: 4%;"></div>
+              </div>
+              <span class="dur">132ms</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div style="padding: 14px 16px; background: var(--surface); border: 1px solid var(--rule-soft); border-radius: var(--r-md);">
+              <div style="font-family: var(--mono); font-size: 9px; color: var(--amber); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px;">Context manifest</div>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--ink-dim); line-height: 1.7;">
+                SYSTEM_IDENTITY · v2026.04.01 · h:a4f2<br/>
+                AGENT_CHARTER · wheel v1.0.0 · h:8b21<br/>
+                PORTFOLIO_STATE · as_of 10:44:12 · h:f109<br/>
+                MARKET_STATE · vix 18.4 · h:3ac8<br/>
+                RELEVANT_SIGNALS · 3 items · h:b274
+              </div>
+            </div>
+            <div style="padding: 14px 16px; background: var(--surface); border: 1px solid var(--rule-soft); border-radius: var(--r-md);">
+              <div style="font-family: var(--mono); font-size: 9px; color: var(--amber); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 8px;">Output</div>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--ink-dim); line-height: 1.7;">
+                action: sell_put<br/>
+                symbol: AAPL · strike: 218<br/>
+                expiration: 2026-05-09<br/>
+                quantity: 1 · delta: −0.26<br/>
+                <span style="color: var(--teal-soft);">[fills as expected]</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div style="text-align: right; margin-top: 12px; font-family: var(--mono); font-size: 10px; color: var(--ink-quiet); letter-spacing: 0.15em; text-transform: uppercase;">
+  <span style="color: var(--amber);">20</span> — Desktop · Trace viewer
+</div>
+
+</section>
+
+<!-- ======================= ACT 5: SYSTEM ======================= -->
+<section id="act-5">
+<div class="act fade-up">
+  <div class="num"><span>Act V</span> — Type &amp; system</div>
+  <div class="title">The <em>vocabulary</em> behind everything above.</div>
+  <div class="caption">Design tokens · principles</div>
+</div>
+<p class="act-lead">Every screen above is composed from the same three fonts, the same six colors, and the same handful of component patterns. This is what keeps generative UI coherent: the LLM can arrange many layouts, but it cannot invent new grammar.</p>
+
+<div class="type-col">
+  <div class="type-sample fade-up">
+    <div class="kind">Display · Fraunces</div>
+    <div class="display"><em>Aa</em>Bb</div>
+    <div class="mid">A serif with warmth.</div>
+    <div class="para">Headlines, portfolio values, decision cards, retrospective moments. Italic in amber marks agent voice. Optical sizing at 144 for display, 9 for footnotes.</div>
+  </div>
+  <div class="type-sample fade-up" style="animation-delay: 0.05s">
+    <div class="kind">Technical · JetBrains Mono</div>
+    <div class="num">$104,218.46</div>
+    <div class="small">DELTA · −0.18 · DTE 21 · MAT 0.72</div>
+    <div class="para">Numbers, tickers, constraint chips, timestamps, trace IDs. Never in flowing copy. Signals &ldquo;this is a real system.&rdquo;</div>
+  </div>
+  <div class="type-sample fade-up" style="animation-delay: 0.1s">
+    <div class="kind">Voice · Inter Tight</div>
+    <div class="mid" style="font-family: var(--sans); font-style: normal; font-size: 18px;">The clear narrator.</div>
+    <div class="para" style="font-family: var(--sans);">Body copy, explanations, UI labels. Inter Tight for clarity at small sizes and mechanical feel that pairs with both serif and mono.</div>
+  </div>
+</div>
+
+<div class="palette">
+  <div class="swatch sw-bg"><span class="n">Ink Bg</span><span class="hex">#0F100D</span></div>
+  <div class="swatch sw-surface"><span class="n">Surface</span><span class="hex">#1C1D19</span></div>
+  <div class="swatch sw-amber"><span class="n">Amber</span><span class="hex">#D4A25E</span></div>
+  <div class="swatch sw-teal"><span class="n">Teal</span><span class="hex">#6FB3A4</span></div>
+  <div class="swatch sw-sage"><span class="n">Sage</span><span class="hex">#8EA87C</span></div>
+  <div class="swatch sw-cream"><span class="n">Cream</span><span class="hex">#F6EFE0</span></div>
+</div>
+
+<p style="margin-top: 28px; max-width: 720px; color: var(--ink-dim); font-size: 14px; line-height: 1.65;">
+  <strong style="color: var(--amber); font-weight: 600;">Amber</strong> — agent voice, pending actions, urgent moments. Used sparingly to keep signal strong. <strong style="color: var(--teal-soft); font-weight: 600;">Teal</strong> — confirmed states, fills, closed-and-won positions. <strong style="color: var(--sage); font-weight: 600;">Sage</strong> — healthy systems, passed constraints, quiet profits. <strong style="color: var(--rose); font-weight: 600;">Rose</strong> — for halts and destructive actions, used with restraint. <strong style="color: var(--cream); font-weight: 600;">Cream</strong> — reserved for future editorial surfaces and educational moments. Dominant surfaces are warm off-blacks, never pure black or pure white.
+</p>
+
+<!-- PRINCIPLES -->
+<div style="margin-top: 72px; padding-top: 40px; border-top: 1px solid var(--rule);">
+  <div style="font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; color: var(--amber); text-transform: uppercase; margin-bottom: 16px;">Design charter · five rules</div>
+  <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 28px;">
+    <div class="fade-up" style="animation-delay: 0.05s">
+      <div style="font-family: var(--serif); font-size: 48px; color: var(--amber); font-weight: 400; font-style: italic; line-height: 1;">1</div>
+      <div style="font-family: var(--serif); font-size: 16px; margin-top: 8px; font-weight: 500;">Editorial over dashboard.</div>
+      <p style="font-size: 12px; line-height: 1.55; color: var(--ink-dim); margin-top: 6px;">Every screen reads like a considered page, not a grid of widgets.</p>
+    </div>
+    <div class="fade-up" style="animation-delay: 0.1s">
+      <div style="font-family: var(--serif); font-size: 48px; color: var(--amber); font-weight: 400; font-style: italic; line-height: 1;">2</div>
+      <div style="font-family: var(--serif); font-size: 16px; margin-top: 8px; font-weight: 500;">Amber is sacred.</div>
+      <p style="font-size: 12px; line-height: 1.55; color: var(--ink-dim); margin-top: 6px;">Only the agent's voice gets amber. Never decoratively.</p>
+    </div>
+    <div class="fade-up" style="animation-delay: 0.15s">
+      <div style="font-family: var(--serif); font-size: 48px; color: var(--amber); font-weight: 400; font-style: italic; line-height: 1;">3</div>
+      <div style="font-family: var(--serif); font-size: 16px; margin-top: 8px; font-weight: 500;">Show the reasoning.</div>
+      <p style="font-size: 12px; line-height: 1.55; color: var(--ink-dim); margin-top: 6px;">Every action includes why, signals, constraint checks. Visible, always.</p>
+    </div>
+    <div class="fade-up" style="animation-delay: 0.2s">
+      <div style="font-family: var(--serif); font-size: 48px; color: var(--amber); font-weight: 400; font-style: italic; line-height: 1;">4</div>
+      <div style="font-family: var(--serif); font-size: 16px; margin-top: 8px; font-weight: 500;">Numbers are monospaced.</div>
+      <p style="font-size: 12px; line-height: 1.55; color: var(--ink-dim); margin-top: 6px;">Prices, tickers, Greeks, timestamps — always JetBrains Mono.</p>
+    </div>
+    <div class="fade-up" style="animation-delay: 0.25s">
+      <div style="font-family: var(--serif); font-size: 48px; color: var(--amber); font-weight: 400; font-style: italic; line-height: 1;">5</div>
+      <div style="font-family: var(--serif); font-size: 16px; margin-top: 8px; font-weight: 500;">No green-red cliché.</div>
+      <p style="font-size: 12px; line-height: 1.55; color: var(--ink-dim); margin-top: 6px;">P&amp;L uses sage and rose — meaning retained, cliché avoided.</p>
+    </div>
+  </div>
+</div>
+
+</section>
+
+<!-- ======================= FOOTER ======================= -->
+<footer class="footer fade-up">
+  <div>
+    <div class="big">Quiet. <em>Intelligent.</em> Trusted.</div>
+    <div style="margin-top: 24px;">folio.e8e · Design walkthrough v2.1 · 20 screens · Refined palette · Internal · Generated for design &amp; engineering alignment</div>
+  </div>
+  <div style="text-align: right; line-height: 1.8;">
+    <div>Fraunces · Editorial</div>
+    <div>JetBrains Mono · System</div>
+    <div>Inter Tight · Voice</div>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
