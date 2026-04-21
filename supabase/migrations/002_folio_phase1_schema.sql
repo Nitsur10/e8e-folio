@@ -8,6 +8,17 @@
 -- we build the in-app user feedback widget (Phase 2 learning).
 -- =============================================================================
 
+-- Defensive: the updated_at trigger helper is defined in migration 001, but
+-- recreate it idempotently so this migration applies cleanly to any fresh
+-- database regardless of ordering.
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- -----------------------------------------------------------------------------
 -- Users — profile extending auth.users
 -- -----------------------------------------------------------------------------
@@ -271,24 +282,24 @@ CREATE POLICY "watchlist service"        ON public.watchlist FOR ALL
 -- Public reference — readable to everyone logged in, writable only by service_role
 ALTER TABLE public.signals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "signals read"             ON public.signals FOR SELECT
-  USING (auth.role() IN ('authenticated', 'anon'));
+  USING (auth.role() = 'authenticated');
 CREATE POLICY "signals service"          ON public.signals FOR ALL
   USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 ALTER TABLE public.stock_fundamentals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "fund read"                ON public.stock_fundamentals FOR SELECT
-  USING (auth.role() IN ('authenticated', 'anon'));
+  USING (auth.role() = 'authenticated');
 CREATE POLICY "fund service"             ON public.stock_fundamentals FOR ALL
   USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 ALTER TABLE public.stock_scores ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "scores read"              ON public.stock_scores FOR SELECT
-  USING (auth.role() IN ('authenticated', 'anon'));
+  USING (auth.role() = 'authenticated');
 CREATE POLICY "scores service"           ON public.stock_scores FOR ALL
   USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');
 
 ALTER TABLE public.stock_composite_scores ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "composite read"           ON public.stock_composite_scores FOR SELECT
-  USING (auth.role() IN ('authenticated', 'anon'));
+  USING (auth.role() = 'authenticated');
 CREATE POLICY "composite service"        ON public.stock_composite_scores FOR ALL
   USING (auth.role() = 'service_role') WITH CHECK (auth.role() = 'service_role');

@@ -16,14 +16,23 @@ interface SlackBlock {
   elements?: Array<{ type: string; text: string }>;
 }
 
+const SLACK_WEBHOOK_URL_RE = /^https:\/\/hooks\.slack\.com\//;
+
 /**
  * Post a message to Slack using an incoming webhook URL.
  * Use this for simple notifications from the app.
+ *
+ * The URL must point at Slack's webhook domain — this is a simple guard against
+ * SSRF if the caller is ever wired from a user-controllable source.
  */
 export async function postToSlackWebhook(
   webhookUrl: string,
   message: { text: string; blocks?: SlackBlock[] }
 ): Promise<boolean> {
+  if (!SLACK_WEBHOOK_URL_RE.test(webhookUrl)) {
+    console.error('Rejected non-Slack webhook URL');
+    return false;
+  }
   try {
     const response = await fetch(webhookUrl, {
       method: 'POST',

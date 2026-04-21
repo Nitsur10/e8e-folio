@@ -10,9 +10,22 @@
  */
 import { createClient } from '@supabase/supabase-js';
 
-const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = process.env;
+const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, FOLIO_ALLOW_SEED } = process.env;
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
+
+// Production guard: refuse to seed unless the URL looks local/internal OR the
+// operator explicitly opts in. Without this, an accidentally-exported prod
+// service-role key would create 10 confirmed accounts with a known password.
+const LOCAL_URL_RE = /localhost|127\.0\.0\.1|supabase_internal/;
+if (!LOCAL_URL_RE.test(SUPABASE_URL) && FOLIO_ALLOW_SEED !== 'true') {
+  console.error(
+    `Refusing to seed ${SUPABASE_URL}.\n` +
+    `This script creates 10 pre-confirmed test users with a known weak password.\n` +
+    `Set FOLIO_ALLOW_SEED=true to override (intended for staging only).`
+  );
   process.exit(1);
 }
 
