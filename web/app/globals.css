@@ -1,0 +1,84 @@
+/*
+ * folio.e8e — global styles and CSS variables.
+ * Values are generated from @folio/shared/design-tokens (source of truth).
+ * Do not introduce hardcoded hex values in feature code.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0f100d;
+  --bg-elev: #17181410;
+  --surface: #1c1d19;
+  --surface-2: #222320;
+  --surface-3: #2a2b27;
+
+  --ink: #f6f4ee;
+  --ink-dim: #b8b4a7;
+  --ink-quiet: #767367;
+
+  --rule: #2d2e2a;
+  --rule-soft: #23241f;
+
+  --amber: #d4a25e;
+  --amber-soft: #e0b67e;
+  --amber-bg: #2e2614;
+
+  --teal: #6fb3a4;
+  --teal-soft: #9ecec2;
+  --teal-bg: #1a2f2b;
+
+  --sage: #8ea87c;
+  --sage-bg: #1f2a18;
+
+  --rose: #d97867;
+  --rose-bg: #3a1e18;
+
+  --cream: #f6efe0;
+  --profit: #8ea87c;
+  --loss: #c97464;
+
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 1400px 700px at 50% -10%, #1a1b17 0%, transparent 60%),
+    radial-gradient(ellipse 800px 400px at 100% 100%, #1a1d1c 0%, transparent 50%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

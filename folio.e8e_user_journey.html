@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>folio.e8e — User Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f100d;
+    --surface: #1c1d19;
+    --surface-2: #222320;
+    --surface-3: #2a2b27;
+    --ink: #f6f4ee;
+    --ink-dim: #b8b4a7;
+    --ink-quiet: #767367;
+    --rule: #2d2e2a;
+    --rule-soft: #23241f;
+    --amber: #d4a25e;
+    --amber-soft: #e0b67e;
+    --amber-bg: #2e2614;
+    --teal: #6fb3a4;
+    --teal-soft: #9ecec2;
+    --teal-bg: #1a2f2b;
+    --sage: #8ea87c;
+    --sage-bg: #1f2a18;
+    --rose: #d97867;
+    --rose-bg: #3a1e18;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter Tight', -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  body {
+    background:
+      radial-gradient(ellipse 1400px 700px at 50% -10%, #1a1b17 0%, transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  .shell { max-width: 1600px; margin: 0 auto; padding: 72px 48px 160px; position: relative; z-index: 2; }
+
+  .masthead {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 48px;
+  }
+  .wordmark { display: flex; align-items: baseline; gap: 2px; }
+  .wordmark .lede, .wordmark .mark {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 56px;
+    letter-spacing: -0.04em;
+    line-height: 0.9;
+    font-variation-settings: "opsz" 144;
+  }
+  .wordmark .mark { font-style: italic; color: var(--amber); }
+  .wordmark .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--amber);
+    margin: 0 5px 9px 3px;
+    box-shadow: 0 0 15px var(--amber);
+  }
+  .tagline {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-quiet);
+    margin-top: 12px;
+  }
+  .tagline .sep { color: var(--amber); margin: 0 8px; }
+  .meta-col {
+    text-align: right;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+    line-height: 1.8;
+  }
+  .meta-col strong { color: var(--ink); font-weight: 500; }
+
+  .intro {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 80px;
+    margin-bottom: 72px;
+  }
+  .intro .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--amber);
+    border-top: 1px solid var(--amber);
+    padding-top: 12px;
+  }
+  .intro h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    font-variation-settings: "opsz" 144;
+  }
+  .intro h1 em { font-style: italic; color: var(--amber); }
+  .intro p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    max-width: 720px;
+  }
+  .intro p + p { margin-top: 12px; }
+
+  /* ========== LEGEND ========== */
+  .legend {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 8px;
+    margin-bottom: 40px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px;
+    border: 1px solid;
+  }
+  .legend-swatch.amber { background: var(--amber-bg); border-color: var(--amber); }
+  .legend-swatch.teal { background: var(--teal-bg); border-color: var(--teal); }
+  .legend-swatch.sage { background: var(--sage-bg); border-color: var(--sage); }
+  .legend-swatch.rose { background: var(--rose-bg); border-color: var(--rose); }
+
+  /* ========== SECTION HEAD ========== */
+  .section-head {
+    display: grid;
+    grid-template-columns: 220px 1fr auto;
+    gap: 48px;
+    align-items: baseline;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+    margin: 100px 0 36px;
+  }
+  .section-head .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--ink-quiet);
+  }
+  .section-head .num span { color: var(--amber); }
+  .section-head .title {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  .section-head .title em { font-style: italic; color: var(--amber); }
+  .section-head .caption {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+  }
+  .section-lead {
+    max-width: 800px;
+    margin: -20px 0 36px 268px;
+    color: var(--ink-dim);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ========== JOURNEY DIAGRAM ========== */
+  .journey-wrap {
+    overflow-x: auto;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .journey-wrap::-webkit-scrollbar { height: 8px; }
+  .journey-wrap::-webkit-scrollbar-track { background: var(--surface); }
+  .journey-wrap::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 4px; }
+
+  svg.journey { min-width: 1520px; width: 100%; height: auto; }
+
+  /* ========== STAGE DETAIL CARDS ========== */
+  .stages {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-top: 40px;
+  }
+  .stage-card {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stage-card .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .stage-card .num {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--amber);
+    line-height: 1;
+  }
+  .stage-card .time {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    text-align: right;
+  }
+  .stage-card h3 {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .stage-card h3 em { font-style: italic; }
+  .stage-card .phase {
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.18em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .stage-card p {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    margin-bottom: 12px;
+  }
+  .stage-card ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+  }
+  .stage-card li {
+    font-size: 11px;
+    color: var(--ink-dim);
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.4;
+  }
+  .stage-card li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--amber);
+  }
+
+  /* ========== WHEEL LIFECYCLE ========== */
+  .wheel-section {
+    background: var(--surface);
+    border: 1px solid var(--rule-soft);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 48px;
+  }
+  .wheel-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 1000px) {
+    .wheel-grid { grid-template-columns: 1fr; }
+  }
+  .wheel-svg-wrap {
+    display: flex;
+    justify-content: center;
+  }
+  .wheel-text h3 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+  }
+  .wheel-text h3 em { font-style: italic; color: var(--amber); }
+  .wheel-steps {
+    display: grid;
+    gap: 14px;
+    margin-top: 20px;
+  }
+  .wheel-step {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
+  .wheel-step .n {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--amber);
+    line-height: 1;
+  }
+  .wheel-step .b { font-size: 13px; line-height: 1.5; color: var(--ink-dim); }
+  .wheel-step .b strong { color: var(--ink); font-weight: 500; }
+  .wheel-step .b .mono {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber-soft);
+    background: var(--surface-3);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ========== DIVERGENCE (paper vs live) ========== */
+  .divergence {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    margin-top: 32px;
+  }
+  .path-card {
+    padding: 28px;
+    border-radius: 14px;
+    border: 1px solid;
+    position: relative;
+  }
+  .path-card.paper {
+    background: linear-gradient(165deg, var(--teal-bg) 0%, var(--surface) 100%);
+    border-color: var(--teal);
+  }
+  .path-card.live {
+    background: linear-gradient(165deg, var(--amber-bg) 0%, var(--surface) 100%);
+    border-color: var(--amber);
+  }
+  .path-card .badge {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 3px;
+  }
+  .path-card.paper .badge {
+    background: var(--teal);
+    color: #0d2520;
+  }
+  .path-card.live .badge {
+    background: var(--amber);
+    color: #1f1708;
+  }
+  .path-card h4 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .path-card h4 em { font-style: italic; }
+  .path-card .subtitle {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .path-card .facts {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .path-fact {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+  }
+  .path-fact .k {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    padding-top: 2px;
+  }
+  .path-fact .v strong { color: var(--ink); font-weight: 500; }
+
+  /* ========== PROGRESSION TIMELINE ========== */
+  .progression {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 40px;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .prog-phase {
+    padding: 24px 20px;
+    border-right: 1px solid var(--rule);
+    position: relative;
+  }
+  .prog-phase:last-child { border-right: none; }
+  .prog-phase .state {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding: 4px 8px;
+    display: inline-block;
+    border-radius: 3px;
+  }
+  .prog-phase.p1 .state { background: var(--sage-bg); color: var(--sage); }
+  .prog-phase.p2 .state { background: var(--teal-bg); color: var(--teal-soft); }
+  .prog-phase.p3 .state { background: var(--amber-bg); color: var(--amber-soft); }
+  .prog-phase.p4 .state { background: var(--amber); color: #1f1708; }
+  .prog-phase h5 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    margin: 6px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .prog-phase h5 em { font-style: italic; }
+  .prog-phase .desc {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--ink-dim);
+    margin-bottom: 12px;
+  }
+  .prog-phase .gate {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+    text-transform: uppercase;
+    padding-top: 10px;
+    border-top: 1px dashed var(--rule);
+    margin-top: auto;
+  }
+  .prog-phase .gate strong { color: var(--amber-soft); font-weight: 500; }
+
+  /* ========== DECISION POINTS ========== */
+  .decisions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 32px;
+  }
+  .decision-card {
+    background: var(--surface);
+    border: 1px solid var(--amber);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .decision-card::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 80px; height: 80px;
+    background: radial-gradient(circle, var(--amber-bg) 0%, transparent 70%);
+    opacity: 0.4;
+  }
+  .decision-card .q {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .decision-card h4 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+  .decision-card h4 em { font-style: italic; color: var(--amber); }
+  .decision-card p {
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+  }
+
+  /* ========== FOOTER ========== */
+  .footer {
+    margin-top: 120px;
+    padding-top: 32px;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-quiet);
+  }
+  .footer .big {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-style: italic;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+  }
+
+  @media (max-width: 1100px) {
+    .stages { grid-template-columns: repeat(2, 1fr); }
+    .divergence { grid-template-columns: 1fr; }
+    .progression { grid-template-columns: 1fr; }
+    .prog-phase { border-right: none; border-bottom: 1px solid var(--rule); }
+    .decisions { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 700px) {
+    .shell { padding: 40px 20px 80px; }
+    .masthead { grid-template-columns: 1fr; gap: 24px; }
+    .meta-col { text-align: left; }
+    .intro { grid-template-columns: 1fr; gap: 20px; }
+    .section-head { grid-template-columns: 1fr; gap: 12px; }
+    .section-lead { margin-left: 0; }
+    .stages { grid-template-columns: 1fr; }
+    .wheel-grid { grid-template-columns: 1fr; }
+  }
+
+  .fade-up {
+    animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- MASTHEAD -->
+<header class="masthead fade-up">
+  <div>
+    <div class="wordmark">
+      <span class="lede">folio</span><span class="dot"></span><span class="mark">e8e</span>
+    </div>
+    <div class="tagline">User Journey <span class="sep">/</span> Paper &amp; Live <span class="sep">/</span> Wheel Strategy <span class="sep">/</span> End-to-End</div>
+  </div>
+  <div class="meta-col">
+    <div><strong>Flow</strong> — Signup to first real trade</div>
+    <div><strong>Shows</strong> — Paper · Live · Wheel mechanics</div>
+    <div><strong>Audience</strong> — Anyone asking "how does it work"</div>
+  </div>
+</header>
+
+<!-- INTRO -->
+<section class="intro fade-up" style="animation-delay: 0.08s">
+  <div class="label">Overview</div>
+  <div>
+    <h1>The path from <em>curious</em> to <em>trading live</em>.</h1>
+    <p>This page shows the complete user journey through folio.e8e: signing up, connecting a brokerage, running the Wheel strategy on paper, earning the right to go live, and executing real trades with real money. It covers both branches — paper-only (MVP) and live trading (Phase 2) — and shows exactly what the Wheel does at each stage.</p>
+    <p>Read it top to bottom. Every decision point is explicit, every gate is labelled, and every transition between paper and live is spelled out rather than hand-waved.</p>
+
+    <div class="legend" style="margin-top: 24px;">
+      <div class="legend-item"><span class="legend-swatch sage"></span>Safe &amp; reversible</div>
+      <div class="legend-item"><span class="legend-swatch teal"></span>Paper — no money at risk</div>
+      <div class="legend-item"><span class="legend-swatch amber"></span>Agent action · needs user</div>
+      <div class="legend-item"><span class="legend-swatch rose"></span>Live — real money, real risk</div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= SECTION 1: TOP-LEVEL JOURNEY ======================= -->
+<section>
+<div class="section-head fade-up">
+  <div class="num"><span>01</span> — THE JOURNEY</div>
+  <div class="title">Sign up to live trading, <em>visualized</em>.</div>
+  <div class="caption">Horizontal flow · read left to right</div>
+</div>
+<p class="section-lead">Five major stages. The first four happen in MVP (all paper). Live trading is the fifth stage and is gated: you must earn it through paper performance before real money is ever at risk.</p>
+
+<div class="journey-wrap fade-up">
+<svg class="journey" viewBox="0 0 1520 620" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Arrow marker -->
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d4a25e"/>
+    </marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6fb3a4"/>
+    </marker>
+    <marker id="arrow-muted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#767367"/>
+    </marker>
+
+    <linearGradient id="bg-paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a2f2b" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1c1d19" stop-opacity="0.2"/>
+    </linearGradient>
+    <linearGradient id="bg-live" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2e2614" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1c1d19" stop-opacity="0.2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- BG LANES -->
+  <rect x="0" y="160" width="1520" height="170" fill="url(#bg-paper)" rx="6"/>
+  <rect x="0" y="380" width="1520" height="170" fill="url(#bg-live)" rx="6"/>
+
+  <!-- LANE LABELS -->
+  <text x="20" y="145" font-family="JetBrains Mono" font-size="10" fill="#767367" letter-spacing="2">STAGES</text>
+  <text x="20" y="185" font-family="JetBrains Mono" font-size="10" fill="#9ecec2" letter-spacing="2" font-weight="600">PAPER</text>
+  <text x="20" y="200" font-family="JetBrains Mono" font-size="8" fill="#767367" letter-spacing="1.5">VIRTUAL $</text>
+  <text x="20" y="405" font-family="JetBrains Mono" font-size="10" fill="#d4a25e" letter-spacing="2" font-weight="600">LIVE</text>
+  <text x="20" y="420" font-family="JetBrains Mono" font-size="8" fill="#767367" letter-spacing="1.5">REAL $ · PHASE 2</text>
+
+  <!-- TIME AXIS -->
+  <line x1="100" y1="90" x2="1480" y2="90" stroke="#2d2e2a" stroke-width="1" stroke-dasharray="2 4"/>
+  <text x="100" y="78" font-family="JetBrains Mono" font-size="9" fill="#767367" letter-spacing="1.5">DAY 0</text>
+  <text x="410" y="78" font-family="JetBrains Mono" font-size="9" fill="#767367" letter-spacing="1.5">+2 MIN</text>
+  <text x="720" y="78" font-family="JetBrains Mono" font-size="9" fill="#767367" letter-spacing="1.5">DAY 1–30</text>
+  <text x="1030" y="78" font-family="JetBrains Mono" font-size="9" fill="#767367" letter-spacing="1.5">DAY 30+ · GATE</text>
+  <text x="1340" y="78" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" letter-spacing="1.5">LIVE</text>
+
+  <!-- STAGE NUMBERS ABOVE NODES -->
+  <text x="240" y="130" font-family="Fraunces" font-style="italic" font-size="18" fill="#d4a25e" text-anchor="middle">I</text>
+  <text x="540" y="130" font-family="Fraunces" font-style="italic" font-size="18" fill="#d4a25e" text-anchor="middle">II</text>
+  <text x="840" y="130" font-family="Fraunces" font-style="italic" font-size="18" fill="#d4a25e" text-anchor="middle">III</text>
+  <text x="1140" y="130" font-family="Fraunces" font-style="italic" font-size="18" fill="#d4a25e" text-anchor="middle">IV</text>
+  <text x="1440" y="130" font-family="Fraunces" font-style="italic" font-size="18" fill="#d4a25e" text-anchor="middle">V</text>
+
+  <!-- STAGE NODES (paper lane) -->
+  <!-- I. Sign up -->
+  <g transform="translate(140, 195)">
+    <rect width="200" height="100" rx="10" fill="#1c1d19" stroke="#8ea87c" stroke-width="1.5"/>
+    <text x="16" y="26" font-family="JetBrains Mono" font-size="9" fill="#8ea87c" letter-spacing="1.5">SIGN UP</text>
+    <text x="16" y="52" font-family="Fraunces" font-size="15" font-weight="500" fill="#f6f4ee">Create account</text>
+    <text x="16" y="72" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Email, MFA.</text>
+    <text x="16" y="86" font-family="Inter Tight" font-size="10" fill="#b8b4a7">No broker yet.</text>
+  </g>
+
+  <!-- II. Connect Alpaca paper -->
+  <g transform="translate(440, 195)">
+    <rect width="200" height="100" rx="10" fill="#1c1d19" stroke="#6fb3a4" stroke-width="1.5"/>
+    <text x="16" y="26" font-family="JetBrains Mono" font-size="9" fill="#9ecec2" letter-spacing="1.5">CONNECT · BYOK</text>
+    <text x="16" y="52" font-family="Fraunces" font-size="15" font-weight="500" fill="#f6f4ee">Alpaca paper key</text>
+    <text x="16" y="72" font-family="Inter Tight" font-size="10" fill="#b8b4a7">KMS-encrypted.</text>
+    <text x="16" y="86" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Revocable any time.</text>
+  </g>
+
+  <!-- III. Deploy Wheel on paper -->
+  <g transform="translate(740, 195)">
+    <rect width="200" height="100" rx="10" fill="#1c1d19" stroke="#6fb3a4" stroke-width="1.5"/>
+    <text x="16" y="26" font-family="JetBrains Mono" font-size="9" fill="#9ecec2" letter-spacing="1.5">DEPLOY AGENT</text>
+    <text x="16" y="52" font-family="Fraunces" font-size="15" font-weight="500" fill="#f6f4ee">Wheel on AAPL</text>
+    <text x="16" y="72" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Pick ticker + size.</text>
+    <text x="16" y="86" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Approval: ask-me.</text>
+  </g>
+
+  <!-- IV. Paper track record -->
+  <g transform="translate(1040, 195)">
+    <rect width="200" height="100" rx="10" fill="#1c1d19" stroke="#6fb3a4" stroke-width="1.5"/>
+    <text x="16" y="26" font-family="JetBrains Mono" font-size="9" fill="#9ecec2" letter-spacing="1.5">TRACK RECORD</text>
+    <text x="16" y="52" font-family="Fraunces" font-size="15" font-weight="500" fill="#f6f4ee">30 days paper</text>
+    <text x="16" y="72" font-family="Inter Tight" font-size="10" fill="#b8b4a7">≥ 20 decisions.</text>
+    <text x="16" y="86" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Sharpe &gt; 1.0.</text>
+  </g>
+
+  <!-- GATE between IV and V -->
+  <g transform="translate(1270, 220)">
+    <polygon points="0,30 30,0 60,30 30,60" fill="#2e2614" stroke="#d4a25e" stroke-width="1.5"/>
+    <text x="30" y="35" font-family="JetBrains Mono" font-size="10" fill="#d4a25e" text-anchor="middle" letter-spacing="1" font-weight="600">GATE</text>
+  </g>
+  <text x="1300" y="210" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" text-anchor="middle" letter-spacing="1.5">EARN IT</text>
+
+  <!-- ARROWS paper lane -->
+  <line x1="345" y1="245" x2="435" y2="245" stroke="#8ea87c" stroke-width="1.5" marker-end="url(#arrow-muted)"/>
+  <line x1="645" y1="245" x2="735" y2="245" stroke="#6fb3a4" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+  <line x1="945" y1="245" x2="1035" y2="245" stroke="#6fb3a4" stroke-width="1.5" marker-end="url(#arrow-teal)"/>
+  <line x1="1245" y1="245" x2="1270" y2="245" stroke="#6fb3a4" stroke-width="1.5"/>
+
+  <!-- Arrow from gate down-right to LIVE lane -->
+  <path d="M 1330 280 Q 1380 330 1390 400" fill="none" stroke="#d4a25e" stroke-width="2" marker-end="url(#arrow-amber)" stroke-dasharray="0"/>
+
+  <!-- LIVE lane node -->
+  <g transform="translate(1340, 415)">
+    <rect width="160" height="100" rx="10" fill="#1c1d19" stroke="#d4a25e" stroke-width="2"/>
+    <text x="16" y="26" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" letter-spacing="1.5">LIVE TRADING</text>
+    <text x="16" y="52" font-family="Fraunces" font-size="15" font-weight="500" fill="#f6f4ee">Real money</text>
+    <text x="16" y="72" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Alpaca live key.</text>
+    <text x="16" y="86" font-family="Inter Tight" font-size="10" fill="#b8b4a7">Staged → auto.</text>
+  </g>
+
+  <!-- Phase 2+ label -->
+  <g transform="translate(1340, 530)">
+    <text x="0" y="12" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" letter-spacing="1.5">PHASE 2+</text>
+    <text x="0" y="28" font-family="Inter Tight" font-size="10" fill="#767367">Behind regulatory</text>
+    <text x="0" y="42" font-family="Inter Tight" font-size="10" fill="#767367">review + opt-in.</text>
+  </g>
+
+  <!-- WITHIN-STAGE DETAILS (below nodes) -->
+  <!-- Stage I details -->
+  <g transform="translate(140, 315)">
+    <text x="0" y="0" font-family="JetBrains Mono" font-size="8" fill="#767367" letter-spacing="1.5">INCLUDES</text>
+    <text x="0" y="16" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Email + password</text>
+    <text x="0" y="30" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· MFA enrollment</text>
+    <text x="0" y="44" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· 5-question profile</text>
+  </g>
+  <g transform="translate(440, 315)">
+    <text x="0" y="0" font-family="JetBrains Mono" font-size="8" fill="#767367" letter-spacing="1.5">INCLUDES</text>
+    <text x="0" y="16" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Alpaca API key + secret</text>
+    <text x="0" y="30" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Envelope-encrypted in KMS</text>
+    <text x="0" y="44" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Verification test trade</text>
+  </g>
+  <g transform="translate(740, 315)">
+    <text x="0" y="0" font-family="JetBrains Mono" font-size="8" fill="#767367" letter-spacing="1.5">INCLUDES</text>
+    <text x="0" y="16" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Choose ticker (AAPL etc)</text>
+    <text x="0" y="30" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Position size: 10/25/40%</text>
+    <text x="0" y="44" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Agent starts watching</text>
+  </g>
+  <g transform="translate(1040, 315)">
+    <text x="0" y="0" font-family="JetBrains Mono" font-size="8" fill="#767367" letter-spacing="1.5">INCLUDES</text>
+    <text x="0" y="16" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Approve / reject decisions</text>
+    <text x="0" y="30" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Collect premium on paper</text>
+    <text x="0" y="44" font-family="Inter Tight" font-size="10" fill="#b8b4a7">· Review retrospectives</text>
+  </g>
+
+  <!-- VERTICAL SECTION LABEL (live lane details) -->
+  <g transform="translate(1340, 530)"></g>
+
+</svg>
+</div>
+
+<!-- STAGE DETAIL CARDS -->
+<div class="stages">
+  <div class="stage-card fade-up" style="animation-delay: 0.05s">
+    <div class="head">
+      <div class="num">I</div>
+      <div class="time">Day 0<br/>~60 seconds</div>
+    </div>
+    <h3>Sign <em>up</em></h3>
+    <div class="phase">ACCOUNT CREATION</div>
+    <p>Create a folio.e8e account. Email and MFA are mandatory from day one; we're touching brokerage keys, so security is not optional.</p>
+    <ul>
+      <li>Email, password, MFA</li>
+      <li>5-question profile: capital, risk, approval mode</li>
+      <li>Agree to ToS &amp; disclaimers</li>
+    </ul>
+  </div>
+
+  <div class="stage-card fade-up" style="animation-delay: 0.1s">
+    <div class="head">
+      <div class="num">II</div>
+      <div class="time">+1 min<br/>BYOK flow</div>
+    </div>
+    <h3>Connect <em>Alpaca paper</em></h3>
+    <div class="phase">BRING YOUR OWN KEY</div>
+    <p>Paste your Alpaca paper API key. It's envelope-encrypted with AWS KMS, never logged, never sent to LLMs. Revocable in Alpaca at any time.</p>
+    <ul>
+      <li>Alpaca paper key + secret</li>
+      <li>KMS encryption at rest</li>
+      <li>Verification ping to Alpaca</li>
+    </ul>
+  </div>
+
+  <div class="stage-card fade-up" style="animation-delay: 0.15s">
+    <div class="head">
+      <div class="num">III</div>
+      <div class="time">+1 min<br/>Agent launch</div>
+    </div>
+    <h3>Deploy <em>the Wheel</em></h3>
+    <div class="phase">AGENT CONFIGURATION</div>
+    <p>Pick a ticker, a position size, and an approval mode. Launch. The agent starts watching the market and will propose the first trade when conditions align.</p>
+    <ul>
+      <li>Ticker: e.g. AAPL</li>
+      <li>Size: 10%, 25%, or 40%</li>
+      <li>Approval: ask-me (MVP default)</li>
+    </ul>
+  </div>
+
+  <div class="stage-card fade-up" style="animation-delay: 0.2s">
+    <div class="head">
+      <div class="num">IV</div>
+      <div class="time">Day 1–30+<br/>Build track record</div>
+    </div>
+    <h3>Run on <em>paper</em></h3>
+    <div class="phase">PROOF PHASE</div>
+    <p>The agent proposes trades; you approve or reject. Premium is collected on paper. Every decision is traced, every retrospective is logged. No real money is at risk.</p>
+    <ul>
+      <li>1-tap approvals via push</li>
+      <li>Per-decision reasoning</li>
+      <li>Post-trade retrospectives</li>
+    </ul>
+  </div>
+
+  <div class="stage-card fade-up" style="animation-delay: 0.25s" style="border-color: var(--amber); background: linear-gradient(180deg, var(--amber-bg) 0%, var(--surface) 60%);">
+    <div class="head">
+      <div class="num" style="color: var(--amber);">V</div>
+      <div class="time">Phase 2+<br/>Gated promotion</div>
+    </div>
+    <h3>Go <em>live</em></h3>
+    <div class="phase" style="color: var(--amber);">REAL MONEY · GATED</div>
+    <p>After 30 days of paper with Sharpe &gt; 1.0 and zero P0 incidents, you can choose to go live. Alpaca live key replaces paper. Staged approval before auto mode.</p>
+    <ul>
+      <li>Paper → Staged → Live-auto</li>
+      <li>Drawdown reverts to staged</li>
+      <li>Real cash, real premium</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ======================= SECTION 2: THE WHEEL ======================= -->
+<section>
+<div class="section-head fade-up">
+  <div class="num"><span>02</span> — THE WHEEL, EXPLAINED</div>
+  <div class="title">What the <em>agent</em> actually does.</div>
+  <div class="caption">4-step cycle · repeats indefinitely</div>
+</div>
+<p class="section-lead">The Wheel is a conservative options strategy. Sell a put; if the stock drops, get assigned shares; sell calls against those shares; if the stock rises, the shares get called away; start over. The agent handles every mechanic. You approve the trades.</p>
+
+<div class="wheel-section fade-up">
+<div class="wheel-grid">
+  <div class="wheel-svg-wrap">
+    <svg viewBox="0 0 340 340" width="100%" style="max-width: 340px;" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer circle -->
+      <circle cx="170" cy="170" r="160" fill="none" stroke="#2d2e2a" stroke-width="1" stroke-dasharray="2 4"/>
+
+      <!-- Inner four arcs (quadrants) -->
+      <defs>
+        <linearGradient id="q1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2e2614"/>
+          <stop offset="100%" stop-color="#1c1d19"/>
+        </linearGradient>
+        <linearGradient id="q2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1a2f2b"/>
+          <stop offset="100%" stop-color="#1c1d19"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Center circle -->
+      <circle cx="170" cy="170" r="45" fill="#1c1d19" stroke="#d4a25e" stroke-width="1.5"/>
+      <text x="170" y="166" font-family="Fraunces" font-style="italic" font-size="14" fill="#d4a25e" text-anchor="middle">the</text>
+      <text x="170" y="184" font-family="Fraunces" font-size="18" font-weight="500" fill="#f6f4ee" text-anchor="middle">Wheel</text>
+
+      <!-- Step 1: top — sell put -->
+      <g>
+        <circle cx="170" cy="50" r="32" fill="#1c1d19" stroke="#d4a25e" stroke-width="1.5"/>
+        <text x="170" y="47" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" text-anchor="middle" letter-spacing="1">01</text>
+        <text x="170" y="60" font-family="Fraunces" font-style="italic" font-size="11" fill="#f6f4ee" text-anchor="middle">Sell put</text>
+      </g>
+      <text x="170" y="20" font-family="Inter Tight" font-size="10" fill="#b8b4a7" text-anchor="middle">Collect premium</text>
+
+      <!-- Step 2: right — assigned -->
+      <g>
+        <circle cx="290" cy="170" r="32" fill="#1c1d19" stroke="#d4a25e" stroke-width="1.5"/>
+        <text x="290" y="167" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" text-anchor="middle" letter-spacing="1">02</text>
+        <text x="290" y="180" font-family="Fraunces" font-style="italic" font-size="11" fill="#f6f4ee" text-anchor="middle">Assigned</text>
+      </g>
+      <text x="325" y="170" font-family="Inter Tight" font-size="10" fill="#b8b4a7" text-anchor="start">Buy shares</text>
+
+      <!-- Step 3: bottom — sell call -->
+      <g>
+        <circle cx="170" cy="290" r="32" fill="#1c1d19" stroke="#d4a25e" stroke-width="1.5"/>
+        <text x="170" y="287" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" text-anchor="middle" letter-spacing="1">03</text>
+        <text x="170" y="300" font-family="Fraunces" font-style="italic" font-size="11" fill="#f6f4ee" text-anchor="middle">Sell call</text>
+      </g>
+      <text x="170" y="325" font-family="Inter Tight" font-size="10" fill="#b8b4a7" text-anchor="middle">Collect again</text>
+
+      <!-- Step 4: left — called away -->
+      <g>
+        <circle cx="50" cy="170" r="32" fill="#1c1d19" stroke="#d4a25e" stroke-width="1.5"/>
+        <text x="50" y="167" font-family="JetBrains Mono" font-size="9" fill="#d4a25e" text-anchor="middle" letter-spacing="1">04</text>
+        <text x="50" y="180" font-family="Fraunces" font-style="italic" font-size="11" fill="#f6f4ee" text-anchor="middle">Called</text>
+      </g>
+      <text x="15" y="170" font-family="Inter Tight" font-size="10" fill="#b8b4a7" text-anchor="end">Sell shares</text>
+
+      <!-- Arrows connecting the 4 steps, going clockwise -->
+      <defs>
+        <marker id="arr-w" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="#d4a25e"/>
+        </marker>
+      </defs>
+      <!-- 1 -> 2 (top-right arc) -->
+      <path d="M 200,60 Q 270,70 282,140" fill="none" stroke="#d4a25e" stroke-width="1.5" marker-end="url(#arr-w)"/>
+      <!-- 2 -> 3 (bottom-right arc) -->
+      <path d="M 282,200 Q 270,270 200,280" fill="none" stroke="#d4a25e" stroke-width="1.5" marker-end="url(#arr-w)"/>
+      <!-- 3 -> 4 (bottom-left arc) -->
+      <path d="M 140,280 Q 70,270 58,200" fill="none" stroke="#d4a25e" stroke-width="1.5" marker-end="url(#arr-w)"/>
+      <!-- 4 -> 1 (top-left arc) -->
+      <path d="M 58,140 Q 70,70 140,60" fill="none" stroke="#d4a25e" stroke-width="1.5" marker-end="url(#arr-w)"/>
+    </svg>
+  </div>
+
+  <div class="wheel-text">
+    <h3>Four stages. <em>Income</em> at each turn.</h3>
+    <p style="color: var(--ink-dim); font-size: 14px; line-height: 1.55;">The agent only does one thing per tick: decide which stage the wheel is in and propose the next action. Every action produces income or preserves capital. The worst case is owning a stock you wanted to own anyway.</p>
+
+    <div class="wheel-steps">
+      <div class="wheel-step">
+        <div class="n">1</div>
+        <div class="b"><strong>Sell a cash-secured put</strong> below current price. Collect premium upfront. If stock stays above strike, <span class="mono">premium kept</span>, start over.</div>
+      </div>
+      <div class="wheel-step">
+        <div class="n">2</div>
+        <div class="b"><strong>If stock drops below strike</strong>, you're assigned 100 shares per contract. Your effective cost basis is <span class="mono">strike − premium</span> — cheaper than market.</div>
+      </div>
+      <div class="wheel-step">
+        <div class="n">3</div>
+        <div class="b"><strong>Sell a covered call</strong> above your cost basis. Collect more premium. If stock stays below strike, <span class="mono">premium kept</span>, sell another call.</div>
+      </div>
+      <div class="wheel-step">
+        <div class="n">4</div>
+        <div class="b"><strong>If stock rises above call strike</strong>, shares are called away at a profit. Net result: premiums from steps 1 &amp; 3, plus share appreciation. Return to step 1.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+
+<!-- ======================= SECTION 3: PAPER vs LIVE ======================= -->
+<section>
+<div class="section-head fade-up">
+  <div class="num"><span>03</span> — PAPER VS LIVE</div>
+  <div class="title">The same flow, <em>with and without</em> real money.</div>
+  <div class="caption">Side by side · what changes</div>
+</div>
+<p class="section-lead">From the agent's perspective, paper and live are nearly identical — same reasoning, same constraints, same retrospectives. The differences are in stakes, gating, and what happens when things go wrong.</p>
+
+<div class="divergence">
+  <div class="path-card paper fade-up">
+    <div class="badge">MVP</div>
+    <h4>Paper <em>trading</em></h4>
+    <div class="subtitle">Virtual money · Day 1 onward</div>
+    <p style="color: var(--ink-dim); font-size: 13px; line-height: 1.55;">Every trade is executed against Alpaca's paper environment. Positions, P&amp;L, and premiums are all virtual. You learn exactly how the Wheel behaves without ever risking real capital.</p>
+
+    <div class="facts">
+      <div class="path-fact">
+        <div class="k">Stakes</div>
+        <div class="v">No real money. Maximum loss on paper = educational.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Broker</div>
+        <div class="v"><strong>Alpaca paper account</strong>. Free. US-only.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Approval</div>
+        <div class="v">Ask-me on every trade (default). Auto-under-$200 optional.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Agent mode</div>
+        <div class="v">Paper state. Can be paused or retired any time.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Exits to</div>
+        <div class="v">Live (after gate) · Retired (archive agent)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="path-card live fade-up" style="animation-delay: 0.08s">
+    <div class="badge">PHASE 2+</div>
+    <h4>Live <em>trading</em></h4>
+    <div class="subtitle">Real money · after gate</div>
+    <p style="color: var(--ink-dim); font-size: 13px; line-height: 1.55;">Same agent, same decisions, but orders route to your live Alpaca account. Real premium, real P&amp;L, real assignment. Staged approval mandatory until you've proven out a further 30 days.</p>
+
+    <div class="facts">
+      <div class="path-fact">
+        <div class="k">Stakes</div>
+        <div class="v">Real money. Drawdowns hurt. Assignments cost actual cash.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Broker</div>
+        <div class="v"><strong>Alpaca live account</strong>. Funded by you. Options-approved tier required.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Approval</div>
+        <div class="v">Staged (every trade asks) → Live-auto (after 30 more days).</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Agent mode</div>
+        <div class="v">Staged → Live-auto. Drawdown &gt;8% reverts to Staged automatically.</div>
+      </div>
+      <div class="path-fact">
+        <div class="k">Gated by</div>
+        <div class="v">30 paper days, Sharpe &gt; 1.0, zero P0 incidents, explicit opt-in.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ======================= SECTION 4: LIFECYCLE PROGRESSION ======================= -->
+<section>
+<div class="section-head fade-up">
+  <div class="num"><span>04</span> — AGENT LIFECYCLE</div>
+  <div class="title">How trust is <em>earned</em> over time.</div>
+  <div class="caption">Four states · explicit gates</div>
+</div>
+<p class="section-lead">Agents don't leap from zero to autonomy. They graduate through four states, each gated by a concrete criterion. The platform enforces this in code — no user can skip steps, and no agent can regress without notice.</p>
+
+<div class="progression fade-up">
+  <div class="prog-phase p1">
+    <div class="state">State 1</div>
+    <h5>Draft</h5>
+    <div class="desc">User is configuring. Not yet running. Can't touch markets.</div>
+    <div class="gate"><strong>Exit:</strong> Save valid config<br/>+ pass pre-check</div>
+  </div>
+  <div class="prog-phase p2">
+    <div class="state">State 2</div>
+    <h5>Paper</h5>
+    <div class="desc">Running on paper. Accumulating decisions and track record. Every trade asks for approval (default).</div>
+    <div class="gate"><strong>Exit:</strong> ≥ 30 days<br/>+ Sharpe &gt; 1.0<br/>+ 0 P0 incidents</div>
+  </div>
+  <div class="prog-phase p3">
+    <div class="state">State 3</div>
+    <h5>Staged</h5>
+    <div class="desc">Live Alpaca account. Every trade still asks for approval, every time. This is earned live trading with a handrail.</div>
+    <div class="gate"><strong>Exit:</strong> ≥ 30 days staged<br/>+ ≥ 95% approval rate<br/>+ explicit opt-in</div>
+  </div>
+  <div class="prog-phase p4">
+    <div class="state">State 4</div>
+    <h5>Live-auto</h5>
+    <div class="desc">Fully autonomous within your constraints. You still get notifications, but the agent executes without asking.</div>
+    <div class="gate"><strong>Reversion:</strong> Drawdown &gt; −8%<br/>→ back to Staged</div>
+  </div>
+</div>
+</section>
+
+<!-- ======================= SECTION 5: DECISION POINTS ======================= -->
+<section>
+<div class="section-head fade-up">
+  <div class="num"><span>05</span> — USER CHOICES</div>
+  <div class="title">The three decisions <em>you</em> make.</div>
+  <div class="caption">Control points across the journey</div>
+</div>
+<p class="section-lead">Most of the platform is automated, but three moments are deliberately yours. Each of them has a meaningful outcome.</p>
+
+<div class="decisions">
+  <div class="decision-card fade-up">
+    <div class="q">Decision 1 · Setup</div>
+    <h4>Which <em>ticker</em> to wheel?</h4>
+    <p>You pick the stock the agent will work on. Pick something you're willing to own — if the wheel assigns you shares, you'll hold them while selling calls. The agent doesn't pick stocks; it picks strikes and timing on the stock you chose.</p>
+  </div>
+  <div class="decision-card fade-up" style="animation-delay: 0.08s">
+    <div class="q">Decision 2 · Each trade</div>
+    <h4>Approve, <em>halve</em>, or skip?</h4>
+    <p>When the agent proposes a trade, you see the reasoning, the signals, and the constraints. Approve as-is, halve the position size, or skip with a note that teaches the agent. The default is "ask me every time" in MVP.</p>
+  </div>
+  <div class="decision-card fade-up" style="animation-delay: 0.16s">
+    <div class="q">Decision 3 · Go live</div>
+    <h4>Graduate to <em>real money</em>?</h4>
+    <p>After the paper gate, you choose whether to swap your paper key for a live Alpaca key. You can stay on paper forever if you want. Going live is a deliberate, one-way transition with staged approval for another 30 days.</p>
+  </div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer fade-up">
+  <div>
+    <div class="big">Signed up to <em>live</em>, on your terms.</div>
+    <div style="margin-top: 20px;">folio.e8e · User Journey · Paper-to-live flow for the Wheel strategy · MVP and Phase 2 scope</div>
+  </div>
+  <div style="text-align: right; line-height: 1.8;">
+    <div>Paper · MVP</div>
+    <div>Live · Phase 2+</div>
+    <div>Wheel · Flagship</div>
+  </div>
+</footer>
+
+</div>
+</body>
+</html>
