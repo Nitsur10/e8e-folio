@@ -44,3 +44,9 @@ Thumbs.db
 # Bootstrap logs
 /tmp/bootstrap-*.log
 .vercel
+
+# Handoff scratch copies (canonical versions live in /docs)
+files_v3/
+files_v3.zip
+files_2/
+files_2.zip
