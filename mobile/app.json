@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "folio.e8e",
+    "slug": "folio-e8e",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "folioe8e",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0f100d",
+    "ios": {
+      "bundleIdentifier": "com.e8e.folio",
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.e8e.folio",
+      "adaptiveIcon": {
+        "backgroundColor": "#0f100d"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

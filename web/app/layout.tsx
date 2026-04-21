@@ -1,8 +1,10 @@
 import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Project Bootstrap',
-  description: 'Auto-bootstrapped project with feedback loop',
+  title: 'folio.e8e',
+  description:
+    'AI-assisted research for technically literate investors. Paper only. Beta.',
 };
 
 export default function RootLayout({

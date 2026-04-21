@@ -1,24 +1,22 @@
 {
-  "name": "project-bootstrap-template",
-  "version": "1.0.0",
+  "name": "folio-e8e",
+  "version": "0.1.0",
   "private": true,
-  "description": "Bootstrap template with Slack feedback loop, Supabase, Vercel, and Claude Code routines",
+  "description": "folio.e8e — AI-assisted trading platform for technically literate retail investors",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "bootstrap": "./scripts/bootstrap.sh"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.49.0",
-    "next": "^15.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "dev": "pnpm --parallel --stream --filter @folio/web --filter @folio/mobile run dev",
+    "dev:web": "pnpm --filter @folio/web dev",
+    "dev:mobile": "pnpm --filter @folio/mobile start",
+    "build": "pnpm --filter @folio/web build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.0.0",
     "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
   }
 }
