@@ -1,36 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+import { getBrowserSupabase } from './supabase/browser';
+import { createAdminClient } from './supabase/admin';
 
-// Client-side Supabase client (uses anon key, respects RLS)
-// Lazy-initialized to avoid crashes during Next.js build when env vars aren't set
-let _supabase: ReturnType<typeof createClient> | null = null;
-
+// Client-side Supabase (cookie-aware via @supabase/ssr).
 export function getSupabase() {
-  if (!_supabase) {
-    _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return _supabase;
+  return getBrowserSupabase();
 }
 
-// Convenience alias — use in client components via: import { supabase } from '@/lib/supabase'
-// Calls getSupabase() on first use, not at import time
+// Alias retained for existing client-component imports.
 export { getSupabase as supabaseClient };
 
-// Server-side Supabase client (uses service_role key, bypasses RLS)
-// Only use in API routes and server components, never on the client
+// Server-side admin client (service_role, bypasses RLS).
+// Only use in API routes and server components, never on the client.
 export function createServerClient() {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
+  return createAdminClient();
 }
 
 // Types matching the database schema

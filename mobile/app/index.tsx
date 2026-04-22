@@ -1,11 +1,10 @@
-import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { theme } from '../theme';
 
-export default function App() {
+export default function Home() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Hello from folio.e8e</Text>
-      <StatusBar style="light" />
     </View>
   );
 }
@@ -13,12 +12,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f100d',
+    backgroundColor: theme.colors.bg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    color: '#f6f4ee',
+    color: theme.colors.ink,
     fontSize: 24,
     letterSpacing: -0.5,
   },
