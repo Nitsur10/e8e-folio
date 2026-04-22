@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@folio/shared": "workspace:*",
+    "@sentry/react-native": "^8.8.0",
     "expo": "~52.0.0",
     "expo-status-bar": "~2.0.0",
     "react": "18.3.1",
