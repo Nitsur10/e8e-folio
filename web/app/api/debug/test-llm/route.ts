@@ -5,8 +5,15 @@ import { flushLangfuse, getLangfuse } from '@/lib/langfuse';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Default-deny. Debug probes are only reachable in local `next dev`
+// or when an operator explicitly sets FOLIO_ALLOW_DEBUG_ROUTES=true.
+function debugEnabled(): boolean {
+  if (process.env.FOLIO_ALLOW_DEBUG_ROUTES === 'true') return true;
+  return process.env.NODE_ENV === 'development';
+}
+
 export async function GET() {
-  if (process.env.NODE_ENV === 'production' && process.env.FOLIO_ALLOW_DEBUG_ROUTES !== 'true') {
+  if (!debugEnabled()) {
     return NextResponse.json({ error: 'not found' }, { status: 404 });
   }
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -36,7 +43,10 @@ export async function GET() {
       .map((b) => b.text)
       .join('');
 
-    generation?.end({ output: text, usage: { input: msg.usage.input_tokens, output: msg.usage.output_tokens } });
+    generation?.end({
+      output: text,
+      usage: { input: msg.usage.input_tokens, output: msg.usage.output_tokens },
+    });
     trace?.update({ output: text });
     await flushLangfuse();
 
