@@ -7,6 +7,10 @@
     "scheme": "folioe8e",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0f100d",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
     "ios": {
       "bundleIdentifier": "com.e8e.folio",
       "supportsTablet": false
