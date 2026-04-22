@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getServerSupabase } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { parseConnectPayload } from '@/features/broker/lib/schemas';
 import { assertPaperKey, LiveKeyRejectedError } from '@/features/broker/lib/live-key';
 import { verifyCredentials, AlpacaError } from '@/features/broker/lib/alpaca';
@@ -11,7 +10,10 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   const sb = await getServerSupabase();
-  const { data: userRes } = await sb.auth.getUser();
+  const { data: userRes, error: authErr } = await sb.auth.getUser();
+  if (authErr) {
+    return NextResponse.json({ error: 'auth_error' }, { status: 401 });
+  }
   const user = userRes?.user;
   if (!user) {
     return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
@@ -43,8 +45,10 @@ export async function POST(req: Request) {
     await verifyCredentials({ keyId, secret });
   } catch (err) {
     if (err instanceof AlpacaError) {
+      // Never echo err.message — it may contain upstream body fragments or
+      // cause chains that include the secret. The code alone is caller-safe.
       return NextResponse.json(
-        { error: 'alpaca_verification_failed', code: err.code, message: err.message },
+        { error: 'alpaca_verification_failed', code: err.code },
         { status: err.code === 'unauthorized' || err.code === 'forbidden' ? 400 : 502 }
       );
     }
@@ -53,10 +57,10 @@ export async function POST(req: Request) {
 
   const [encKey, encSecret] = await Promise.all([encryptSecret(keyId), encryptSecret(secret)]);
 
-  // Use the service-role admin client so we write the bytea bytes directly;
-  // RLS already enforced by auth check above.
-  const admin = createAdminClient();
-  const { error: upsertError } = await admin.from('broker_connections').upsert(
+  // Use the user-scoped SSR client; RLS policy "broker owner" on
+  // broker_connections restricts writes to auth.uid() = user_id, so an
+  // accidentally forgotten predicate still fails closed.
+  const { error: upsertError } = await sb.from('broker_connections').upsert(
     {
       user_id: user.id,
       broker: 'alpaca_paper',
@@ -69,10 +73,7 @@ export async function POST(req: Request) {
     { onConflict: 'user_id,broker' }
   );
   if (upsertError) {
-    return NextResponse.json(
-      { error: 'persistence_failed', message: upsertError.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'persistence_failed' }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });
@@ -80,24 +81,25 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   const sb = await getServerSupabase();
-  const { data: userRes } = await sb.auth.getUser();
+  const { data: userRes, error: authErr } = await sb.auth.getUser();
+  if (authErr) {
+    return NextResponse.json({ error: 'auth_error' }, { status: 401 });
+  }
   const user = userRes?.user;
   if (!user) {
     return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
   }
-  const admin = createAdminClient();
-  const { error } = await admin
+  const { error } = await sb
     .from('broker_connections')
     .delete()
     .eq('user_id', user.id)
     .eq('broker', 'alpaca_paper');
   if (error) {
-    return NextResponse.json({ error: 'revoke_failed', message: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'revoke_failed' }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
 }
 
-// Postgres bytea via PostgREST expects `\x`-prefixed hex string.
 function toBytea(buf: Buffer): string {
   return '\\x' + buf.toString('hex');
 }

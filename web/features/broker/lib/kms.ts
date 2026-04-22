@@ -14,10 +14,8 @@ import {
 //   [version:1][edk_len:2-be][edk:edk_len][iv:12][tag:16][ciphertext:*]
 //
 // version 0x01 → AWS KMS (edk is the KMS-encrypted data key)
-// version 0x7f → local-dev (edk is the HMAC of the local master over the iv)
-//
-// The AES-GCM data key is 32 bytes (AES-256). Keys never leave memory for
-// longer than the request that uses them — no caching.
+// version 0x7f → local-dev only: data key derived from KMS_LOCAL_MASTER_KEY
+//                via HMAC(master, iv). This path is rejected in production.
 
 const VERSION_KMS = 0x01;
 const VERSION_LOCAL = 0x7f;
@@ -25,8 +23,16 @@ const IV_LEN = 12;
 const TAG_LEN = 16;
 const DATA_KEY_LEN = 32;
 
-let kmsClient: KMSClient | null = null;
-function getClient(): KMSClient {
+interface KmsLike {
+  send(command: GenerateDataKeyCommand | DecryptCommand): Promise<{
+    Plaintext?: Uint8Array;
+    CiphertextBlob?: Uint8Array;
+    KeyId?: string;
+  }>;
+}
+
+let kmsClient: KmsLike | null = null;
+function getClient(): KmsLike {
   if (!kmsClient) {
     kmsClient = new KMSClient({ region: process.env.AWS_REGION ?? 'us-east-1' });
   }
@@ -34,31 +40,27 @@ function getClient(): KMSClient {
 }
 
 function kmsKeyId(): string | null {
-  const id = process.env.FOLIO_KMS_KEY_ID;
+  const id = process.env.KMS_KEY_ID;
   if (!id || id === '' || id.startsWith('local:')) return null;
   return id;
 }
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production';
+}
+
 function localMasterKey(): Buffer {
-  const raw = process.env.FOLIO_KMS_LOCAL_KEY;
+  const raw = process.env.KMS_LOCAL_MASTER_KEY;
   if (!raw) {
     throw new Error(
-      'FOLIO_KMS_KEY_ID not set and FOLIO_KMS_LOCAL_KEY missing — cannot encrypt'
+      'KMS_KEY_ID not set and KMS_LOCAL_MASTER_KEY missing — cannot encrypt'
     );
   }
-  // Accept hex or base64. Derive a stable 32-byte key via HMAC if the input
-  // isn't already 32 bytes after decode.
-  let buf: Buffer;
-  try {
-    buf = Buffer.from(raw, 'base64');
-    if (buf.length !== 32) throw new Error('not 32');
-  } catch {
-    buf = createHmac('sha256', 'folio.e8e/local-kms').update(raw).digest();
-  }
-  if (buf.length !== 32) {
-    buf = createHmac('sha256', 'folio.e8e/local-kms').update(raw).digest();
-  }
-  return buf;
+  // Always derive via HMAC. Previously this accepted a base64 path, but
+  // Buffer.from(..., 'base64') silently succeeds on arbitrary strings and
+  // produced non-deterministic masters for inputs that happened to look
+  // base64-ish. One derivation path, no silent fallback.
+  return createHmac('sha256', 'folio.e8e/local-kms').update(raw).digest();
 }
 
 export interface EncryptResult {
@@ -68,8 +70,9 @@ export interface EncryptResult {
 
 export async function encryptSecret(plaintext: string): Promise<EncryptResult> {
   const keyId = kmsKeyId();
-  if (keyId) {
-    return encryptWithKms(plaintext, keyId);
+  if (keyId) return encryptWithKms(plaintext, keyId);
+  if (isProduction()) {
+    throw new Error('KMS_KEY_ID is required in production');
   }
   return encryptLocal(plaintext);
 }
@@ -80,7 +83,12 @@ export async function decryptSecret(ciphertext: Buffer): Promise<string> {
   }
   const version = ciphertext[0];
   if (version === VERSION_KMS) return decryptKms(ciphertext);
-  if (version === VERSION_LOCAL) return decryptLocal(ciphertext);
+  if (version === VERSION_LOCAL) {
+    if (isProduction()) {
+      throw new Error('local-dev envelope rejected in production');
+    }
+    return decryptLocal(ciphertext);
+  }
   throw new Error(`unknown envelope version: 0x${version.toString(16)}`);
 }
 
@@ -94,11 +102,13 @@ async function encryptWithKms(plaintext: string, keyId: string): Promise<Encrypt
   }
   const dataKey = Buffer.from(out.Plaintext);
   const edk = Buffer.from(out.CiphertextBlob);
+  const ptBuf = Buffer.from(plaintext, 'utf8');
   try {
-    const envelope = sealAesGcm(VERSION_KMS, dataKey, edk, Buffer.from(plaintext, 'utf8'));
+    const envelope = sealAesGcm(VERSION_KMS, dataKey, edk, ptBuf);
     return { ciphertext: envelope, kmsKeyId: out.KeyId ?? keyId };
   } finally {
     dataKey.fill(0);
+    ptBuf.fill(0);
   }
 }
 
@@ -119,9 +129,6 @@ function encryptLocal(plaintext: string): EncryptResult {
   const master = localMasterKey();
   const dataKey = randomBytes(DATA_KEY_LEN);
   try {
-    // Wrap the data key by XORing it with HMAC(master, iv). The iv is part
-    // of the envelope, so we can reproduce the HMAC on decrypt. This is a
-    // local-dev shim only — production paths go through AWS KMS.
     const iv = randomBytes(IV_LEN);
     const wrap = createHmac('sha256', master).update(iv).digest().subarray(0, DATA_KEY_LEN);
     const edk = Buffer.alloc(DATA_KEY_LEN);
@@ -206,7 +213,7 @@ interface EnvelopeParts {
 }
 
 function parseEnvelope(envelope: Buffer): EnvelopeParts {
-  let o = 1; // skip version (already read by caller)
+  let o = 1;
   const edkLen = envelope.readUInt16BE(o);
   o += 2;
   if (envelope.length < o + edkLen + IV_LEN + TAG_LEN) {
@@ -222,10 +229,12 @@ function parseEnvelope(envelope: Buffer): EnvelopeParts {
   return { edk, iv, tag, ct };
 }
 
-// Exported for unit tests so they can force the local path deterministically.
 export const _internal = {
   VERSION_KMS,
   VERSION_LOCAL,
   writeEnvelope,
   parseEnvelope,
+  setClientForTesting(client: KmsLike | null) {
+    kmsClient = client;
+  },
 };

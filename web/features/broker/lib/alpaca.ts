@@ -14,7 +14,6 @@ export interface AlpacaAccount {
   portfolio_value: string;
   pattern_day_trader: boolean;
   trading_blocked: boolean;
-  // Paper accounts have no live-funded fields; we expose a subset only.
 }
 
 export class AlpacaError extends Error {
@@ -23,6 +22,7 @@ export class AlpacaError extends Error {
     | 'forbidden'
     | 'not_found'
     | 'rate_limited'
+    | 'timeout'
     | 'network'
     | 'unexpected';
   readonly status: number;
@@ -34,12 +34,18 @@ export class AlpacaError extends Error {
   }
 }
 
-function mapStatus(status: number, body: string): AlpacaError {
+const ALPACA_TIMEOUT_MS = 8_000;
+
+// Public-safe error messages. We never surface upstream response bodies to
+// callers because they can include request IDs, account hints, or — in the
+// network branch — error objects whose `cause` may carry request headers
+// including the APCA secret. One static message per status class.
+function mapStatus(status: number): AlpacaError {
   if (status === 401) return new AlpacaError('unauthorized', status, 'Alpaca rejected credentials');
   if (status === 403) return new AlpacaError('forbidden', status, 'Alpaca denied access');
   if (status === 404) return new AlpacaError('not_found', status, 'Alpaca endpoint not found');
   if (status === 429) return new AlpacaError('rate_limited', status, 'Alpaca rate-limited');
-  return new AlpacaError('unexpected', status, `Alpaca ${status}: ${body.slice(0, 200)}`);
+  return new AlpacaError('unexpected', status, `Alpaca returned status ${status}`);
 }
 
 async function alpacaFetch<T>(
@@ -48,11 +54,21 @@ async function alpacaFetch<T>(
   init: RequestInit = {}
 ): Promise<T> {
   assertPaperKey(creds.keyId);
-  const url = `${ALPACA_PAPER_BASE_URL}${path}`;
+  // new URL(path, base) refuses host rewrites via `//evil.com` or relative
+  // tricks. assertHost() is defense in depth if this ever takes user input.
+  const url = new URL(path, ALPACA_PAPER_BASE_URL);
+  if (url.host !== new URL(ALPACA_PAPER_BASE_URL).host) {
+    throw new AlpacaError('unexpected', 0, 'alpaca host mismatch');
+  }
+
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), ALPACA_TIMEOUT_MS);
+
   let res: Response;
   try {
     res = await fetch(url, {
       ...init,
+      signal: ac.signal,
       headers: {
         'APCA-API-KEY-ID': creds.keyId,
         'APCA-API-SECRET-KEY': creds.secret,
@@ -61,11 +77,18 @@ async function alpacaFetch<T>(
       },
     });
   } catch (err) {
-    throw new AlpacaError('network', 0, `network error: ${String(err)}`);
+    if ((err as Error)?.name === 'AbortError') {
+      throw new AlpacaError('timeout', 0, 'alpaca request timed out');
+    }
+    throw new AlpacaError('network', 0, 'network error contacting Alpaca');
+  } finally {
+    clearTimeout(timer);
   }
+
   if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw mapStatus(res.status, body);
+    // Drain body to free the socket, but never surface it.
+    await res.text().catch(() => '');
+    throw mapStatus(res.status);
   }
   return (await res.json()) as T;
 }
@@ -74,8 +97,6 @@ export function getAccount(creds: AlpacaCredentials): Promise<AlpacaAccount> {
   return alpacaFetch<AlpacaAccount>(creds, '/v2/account');
 }
 
-// Verify returns a normalized payload the UI can display without leaking
-// Alpaca's full account response.
 export interface AlpacaVerifyResult {
   account_number: string;
   status: string;

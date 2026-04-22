@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getServerSupabase } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { decryptSecret } from '@/features/broker/lib/kms';
 import { verifyCredentials, AlpacaError } from '@/features/broker/lib/alpaca';
 
@@ -9,14 +8,16 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   const sb = await getServerSupabase();
-  const { data: userRes } = await sb.auth.getUser();
+  const { data: userRes, error: authErr } = await sb.auth.getUser();
+  if (authErr) {
+    return NextResponse.json({ error: 'auth_error' }, { status: 401 });
+  }
   const user = userRes?.user;
   if (!user) {
     return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
   }
 
-  const admin = createAdminClient();
-  const { data: row, error } = await admin
+  const { data: row, error } = await sb
     .from('broker_connections')
     .select('encrypted_key,encrypted_secret,revoked_at')
     .eq('user_id', user.id)
@@ -24,7 +25,7 @@ export async function POST() {
     .maybeSingle();
 
   if (error) {
-    return NextResponse.json({ error: 'lookup_failed', message: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'lookup_failed' }, { status: 500 });
   }
   if (!row || row.revoked_at) {
     return NextResponse.json({ error: 'not_connected' }, { status: 404 });
@@ -36,16 +37,19 @@ export async function POST() {
 
   try {
     const account = await verifyCredentials({ keyId, secret });
-    await admin
+    // Only touch verified_at on non-revoked rows; the .is('revoked_at', null)
+    // guard prevents a verify/revoke race from reviving a revoked row.
+    await sb
       .from('broker_connections')
       .update({ verified_at: new Date().toISOString() })
       .eq('user_id', user.id)
-      .eq('broker', 'alpaca_paper');
+      .eq('broker', 'alpaca_paper')
+      .is('revoked_at', null);
     return NextResponse.json({ ok: true, account });
   } catch (err) {
     if (err instanceof AlpacaError) {
       return NextResponse.json(
-        { error: 'alpaca_verification_failed', code: err.code, message: err.message },
+        { error: 'alpaca_verification_failed', code: err.code },
         { status: err.code === 'unauthorized' || err.code === 'forbidden' ? 400 : 502 }
       );
     }
@@ -53,11 +57,14 @@ export async function POST() {
   }
 }
 
-// PostgREST returns bytea as a `\x`-prefixed hex string by default.
 function fromBytea(value: string | Buffer): Buffer {
   if (Buffer.isBuffer(value)) return value;
-  if (typeof value !== 'string') throw new Error('unexpected bytea payload');
-  if (value.startsWith('\\x')) return Buffer.from(value.slice(2), 'hex');
-  // Some Supabase client configs return base64. Fall back.
-  return Buffer.from(value, 'base64');
+  if (typeof value !== 'string' || !value.startsWith('\\x')) {
+    throw new Error('unexpected bytea payload shape');
+  }
+  const hex = value.slice(2);
+  if (!/^[0-9a-fA-F]*$/.test(hex) || hex.length % 2 !== 0) {
+    throw new Error('malformed bytea hex');
+  }
+  return Buffer.from(hex, 'hex');
 }
