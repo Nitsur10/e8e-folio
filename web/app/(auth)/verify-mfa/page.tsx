@@ -28,6 +28,8 @@ export default function VerifyMfaPage() {
 
   const copy = isEnrollment ? authStrings.enrollMfa : authStrings.verifyMfa;
   const enrollReady = enroll && 'factorId' in enroll ? enroll : null;
+  const enrollError = enroll && 'error' in enroll ? enroll.error : null;
+  const errorMessage = state.error ?? enrollError;
   const qrSrc = enrollReady
     ? `data:image/svg+xml;utf8,${encodeURIComponent(enrollReady.qr)}`
     : null;
@@ -54,9 +56,6 @@ export default function VerifyMfaPage() {
 
       <form action={action} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {enrollReady ? <input type="hidden" name="factorId" value={enrollReady.factorId} /> : null}
-        {!isEnrollment ? (
-          <input type="hidden" name="factorId" value={params.get('factorId') ?? ''} />
-        ) : null}
         <div className="auth-field">
           <label htmlFor="code">6-digit code</label>
           <input
@@ -70,11 +69,7 @@ export default function VerifyMfaPage() {
           />
         </div>
 
-        {state.error || (enroll && 'error' in enroll ? enroll.error : null) ? (
-          <div className="auth-error">
-            {state.error ?? (enroll && 'error' in enroll ? enroll.error : null)}
-          </div>
-        ) : null}
+        {errorMessage ? <div className="auth-error">{errorMessage}</div> : null}
 
         <button className="auth-btn" type="submit" disabled={pending}>
           {pending ? 'Verifying…' : copy.submit}

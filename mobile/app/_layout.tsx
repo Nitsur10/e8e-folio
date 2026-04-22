@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, usePathname, useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -11,24 +11,24 @@ import { theme } from '../theme';
 // EXPO_PUBLIC_SENTRY_DSN is set.
 initSentry();
 
+const AUTH_PATHS = ['/sign-in', '/sign-up', '/verify-email', '/verify-mfa'];
+
 function RootNavigator() {
   const { session, loading, mfaRequired } = useAuth();
-  const segments = useSegments();
+  const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
-    const segs = segments as unknown as string[];
-    const inAuthGroup = segs[0] === '(auth)';
-    const onVerifyMfa = segs[1] === 'verify-mfa';
-    if (!session && !inAuthGroup) {
+    const onAuthPath = AUTH_PATHS.includes(pathname);
+    if (!session && !onAuthPath) {
       router.replace('/sign-in');
-    } else if (session && mfaRequired && !onVerifyMfa) {
+    } else if (session && mfaRequired && pathname !== '/verify-mfa') {
       router.replace('/verify-mfa');
-    } else if (session && !mfaRequired && inAuthGroup) {
+    } else if (session && !mfaRequired && onAuthPath) {
       router.replace('/');
     }
-  }, [session, loading, mfaRequired, segments, router]);
+  }, [session, loading, mfaRequired, pathname, router]);
 
   return (
     <Stack

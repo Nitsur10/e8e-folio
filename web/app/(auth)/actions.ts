@@ -6,10 +6,6 @@ import { getServerSupabase } from '@/lib/supabase/server';
 
 type FormState = { error: string | null };
 
-function originFromEnv() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-}
-
 export async function signUpAction(_: FormState, formData: FormData): Promise<FormState> {
   const email = String(formData.get('email') ?? '');
   const password = String(formData.get('password') ?? '');
@@ -19,12 +15,13 @@ export async function signUpAction(_: FormState, formData: FormData): Promise<Fo
   const passErr = validatePassword(password);
   if (passErr) return { error: passErr };
 
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const supabase = await getServerSupabase();
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${originFromEnv()}/auth/confirm`,
+      emailRedirectTo: `${origin}/auth/confirm`,
     },
   });
 
@@ -47,7 +44,7 @@ export async function signInAction(_: FormState, formData: FormData): Promise<Fo
   if (!password) return { error: 'Password is required.' };
 
   const supabase = await getServerSupabase();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     if (/email not confirmed/i.test(error.message)) {
@@ -59,32 +56,35 @@ export async function signInAction(_: FormState, formData: FormData): Promise<Fo
     return { error: authStrings.errors.invalid_credentials };
   }
 
-  // If the account has TOTP enrolled Supabase returns aal1; a second factor is required to reach aal2.
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.nextLevel && aal.nextLevel !== aal.currentLevel) {
     redirect('/verify-mfa');
   }
 
-  // If no TOTP factor exists yet, push user into enrollment.
   const { data: factors } = await supabase.auth.mfa.listFactors();
   const hasVerifiedTotp = factors?.totp?.some((f) => f.status === 'verified');
   if (!hasVerifiedTotp) {
     redirect('/verify-mfa?enroll=1');
   }
 
-  void data;
   redirect('/');
 }
 
 export async function verifyMfaAction(_: FormState, formData: FormData): Promise<FormState> {
   const code = String(formData.get('code') ?? '');
-  const factorId = String(formData.get('factorId') ?? '');
-
   const codeErr = validateTotpCode(code);
   if (codeErr) return { error: codeErr };
-  if (!factorId) return { error: authStrings.errors.unknown };
 
   const supabase = await getServerSupabase();
+
+  // Enrollment passes factorId explicitly; otherwise resolve the user's verified TOTP factor.
+  let factorId = String(formData.get('factorId') ?? '');
+  if (!factorId) {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    factorId = factors?.totp?.find((f) => f.status === 'verified')?.id ?? '';
+  }
+  if (!factorId) return { error: authStrings.errors.unknown };
+
   const { data: challenge, error: challengeErr } = await supabase.auth.mfa.challenge({ factorId });
   if (challengeErr || !challenge) return { error: authStrings.errors.mfa_invalid };
 
