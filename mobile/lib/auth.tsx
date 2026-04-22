@@ -30,10 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Do NOT flip `loading` from getSession() — we need to wait until the
+    // AAL check has resolved so the router doesn't redirect an AAL1 user
+    // to `/` before `mfaRequired` is known. INITIAL_SESSION below handles
+    // the flip after AAL is computed.
     supabase.auth.getSession().then(({ data }) => {
       if (unmounted) return;
       setSession(data.session);
-      setLoading(false);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
@@ -41,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(nextSession);
       if (nextSession) {
         const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (unmounted) return;
         setMfaRequired(Boolean(aal?.nextLevel && aal.nextLevel !== aal.currentLevel));
       } else {
         setMfaRequired(false);

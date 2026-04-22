@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useActionState, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { authStrings } from '@folio/shared';
@@ -7,7 +8,7 @@ import { enrollMfaAction, verifyMfaAction } from '../actions';
 
 const initial = { error: null as string | null };
 
-export default function VerifyMfaPage() {
+function VerifyMfa() {
   const params = useSearchParams();
   const isEnrollment = params.get('enroll') === '1';
   const [enroll, setEnroll] = useState<
@@ -42,14 +43,21 @@ export default function VerifyMfaPage() {
       {isEnrollment && enrollReady && qrSrc ? (
         <>
           <div className="mfa-qr">
-            {/* Supabase returns a self-contained SVG; served as data URL to avoid dangerouslySetInnerHTML. */}
-            <img src={qrSrc} alt="TOTP QR code" width={200} height={200} />
+            <img
+              src={qrSrc}
+              alt="TOTP QR code. If your screen reader can't use this, the secret below is equivalent."
+              aria-describedby="mfa-secret-label mfa-secret-value"
+              width={200}
+              height={200}
+            />
           </div>
           <div>
-            <div className="auth-subtitle" style={{ marginBottom: 6 }}>
+            <div id="mfa-secret-label" className="auth-subtitle" style={{ marginBottom: 6 }}>
               {authStrings.enrollMfa.secretFallback}
             </div>
-            <div className="mfa-secret">{enrollReady.secret}</div>
+            <div id="mfa-secret-value" className="mfa-secret">
+              {enrollReady.secret}
+            </div>
           </div>
         </>
       ) : null}
@@ -76,5 +84,13 @@ export default function VerifyMfaPage() {
         </button>
       </form>
     </>
+  );
+}
+
+export default function VerifyMfaPage() {
+  return (
+    <React.Suspense fallback={<p className="auth-subtitle">Loading…</p>}>
+      <VerifyMfa />
+    </React.Suspense>
   );
 }

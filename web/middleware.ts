@@ -1,20 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from './lib/supabase/middleware';
 
-const PUBLIC_PATHS = new Set([
-  '/',
-  '/sign-in',
-  '/sign-up',
-  '/verify-mfa',
-  '/verify-email',
-  '/tokens',
-]);
+// Paths that do NOT require an authenticated user.
+const UNAUTH_PATHS = new Set(['/sign-in', '/sign-up', '/verify-email', '/tokens']);
+const UNAUTH_PREFIXES = ['/auth/', '/api/', '/_next/', '/favicon'];
 
-const PUBLIC_PREFIXES = ['/auth/', '/api/', '/_next/', '/favicon'];
+// Paths reachable while authenticated but still at AAL1 (before MFA upgrade).
+const AAL1_ALLOWED = new Set(['/verify-mfa', '/verify-email']);
 
-function isPublic(pathname: string): boolean {
-  if (PUBLIC_PATHS.has(pathname)) return true;
-  return PUBLIC_PREFIXES.some((p) => pathname.startsWith(p));
+function isUnauthPath(pathname: string): boolean {
+  if (UNAUTH_PATHS.has(pathname)) return true;
+  return UNAUTH_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
 export async function middleware(request: NextRequest) {
@@ -23,20 +19,32 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  const { user, response } = await updateSession(request);
+  const { user, mfaRequired, response } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
-  if (!user && !isPublic(pathname)) {
+  // Unauthenticated visitors: allow only the whitelist, redirect everything else to sign-in.
+  if (!user) {
+    if (isUnauthPath(pathname)) return response;
     const signIn = request.nextUrl.clone();
     signIn.pathname = '/sign-in';
     signIn.searchParams.set('redirect', pathname);
     return NextResponse.redirect(signIn);
   }
 
-  if (user && (pathname === '/sign-in' || pathname === '/sign-up')) {
+  // Authenticated visitors.
+  // Keep them out of sign-in / sign-up pages.
+  if (pathname === '/sign-in' || pathname === '/sign-up') {
     const home = request.nextUrl.clone();
     home.pathname = '/';
     return NextResponse.redirect(home);
+  }
+
+  // AAL1-only user (signed in but MFA not satisfied): pin them to /verify-mfa.
+  if (mfaRequired && !AAL1_ALLOWED.has(pathname) && !pathname.startsWith('/auth/')) {
+    const verify = request.nextUrl.clone();
+    verify.pathname = '/verify-mfa';
+    verify.search = '';
+    return NextResponse.redirect(verify);
   }
 
   return response;

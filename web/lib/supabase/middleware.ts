@@ -13,11 +13,8 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          for (const { name, value } of cookiesToSet) {
-            request.cookies.set(name, value);
-          }
-          supabaseResponse = NextResponse.next({ request });
           for (const { name, value, options } of cookiesToSet) {
+            request.cookies.set(name, value);
             supabaseResponse.cookies.set(name, value, options);
           }
         },
@@ -29,5 +26,11 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { user, response: supabaseResponse };
+  let mfaRequired = false;
+  if (user) {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    mfaRequired = Boolean(aal?.nextLevel && aal.nextLevel !== aal.currentLevel);
+  }
+
+  return { user, mfaRequired, response: supabaseResponse };
 }
