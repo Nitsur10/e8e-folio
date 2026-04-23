@@ -30,7 +30,7 @@ test('kms envelope: local round-trip restores plaintext', async () => {
   useLocalKms();
   const plaintext = 'PKTEST123456ABCDEFGH';
   const { ciphertext, kmsKeyId } = await encryptSecret(plaintext);
-  assert.equal(kmsKeyId, 'local:dev');
+  assert.equal(kmsKeyId, 'local:kdf:v1');
   assert.ok(Buffer.isBuffer(ciphertext));
   assert.notEqual(ciphertext.toString('utf8'), plaintext);
   const restored = await decryptSecret(ciphertext);
@@ -98,22 +98,30 @@ test('kms envelope: missing KMS_LOCAL_MASTER_KEY throws a clear error', async ()
 });
 
 test('kms envelope: AWS KMS path round-trips through injected fake client', async () => {
-  process.env.KMS_KEY_ID = 'arn:aws:kms:us-east-1:111:key/fake';
+  process.env.KMS_KEY_ID = 'arn:aws:kms:us-east-1:111:key/input-arn';
 
   const fakeDataKey = randomBytes(32);
-  // Simulate KMS by storing the plaintext data key keyed by its edk.
   const store = new Map<string, Buffer>();
+  const EDK_SUFFIX_LEN = 180;
+
+  let observedKeySpec: string | undefined;
+  let observedInputKeyId: string | undefined;
 
   _internal.setClientForTesting({
     async send(command: unknown) {
       const cmdName = (command as { constructor: { name: string } }).constructor.name;
       if (cmdName === 'GenerateDataKeyCommand') {
-        const edk = Buffer.concat([Buffer.from('EDK:'), randomBytes(180)]);
+        const input = (command as { input: { KeyId: string; KeySpec: string } }).input;
+        observedInputKeyId = input.KeyId;
+        observedKeySpec = input.KeySpec;
+        const edk = Buffer.concat([Buffer.from('EDK:'), randomBytes(EDK_SUFFIX_LEN)]);
         store.set(edk.toString('hex'), fakeDataKey);
         return {
           Plaintext: new Uint8Array(fakeDataKey),
           CiphertextBlob: new Uint8Array(edk),
-          KeyId: 'arn:aws:kms:us-east-1:111:key/fake',
+          // Return a DIFFERENT KeyId than the input so the test catches a
+          // regression to the `?? keyId` fallback in encryptWithKms.
+          KeyId: 'arn:aws:kms:us-east-1:111:key/rotated-version',
         };
       }
       if (cmdName === 'DecryptCommand') {
@@ -128,8 +136,14 @@ test('kms envelope: AWS KMS path round-trips through injected fake client', asyn
   });
 
   const { ciphertext, kmsKeyId } = await encryptSecret('PKKMSTEST1234567890');
-  assert.equal(kmsKeyId, 'arn:aws:kms:us-east-1:111:key/fake');
+
+  assert.equal(observedInputKeyId, 'arn:aws:kms:us-east-1:111:key/input-arn');
+  assert.equal(observedKeySpec, 'AES_256');
+  assert.equal(kmsKeyId, 'arn:aws:kms:us-east-1:111:key/rotated-version');
   assert.equal(ciphertext[0], _internal.VERSION_KMS);
+  // edk_len header must equal the actual EDK length (4-byte 'EDK:' + 180).
+  assert.equal(ciphertext.readUInt16BE(1), 4 + EDK_SUFFIX_LEN);
+
   const restored = await decryptSecret(ciphertext);
   assert.equal(restored, 'PKKMSTEST1234567890');
 });

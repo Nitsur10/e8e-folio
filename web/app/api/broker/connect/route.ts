@@ -4,6 +4,7 @@ import { parseConnectPayload } from '@/features/broker/lib/schemas';
 import { assertPaperKey, LiveKeyRejectedError } from '@/features/broker/lib/live-key';
 import { verifyCredentials, AlpacaError } from '@/features/broker/lib/alpaca';
 import { encryptSecret } from '@/features/broker/lib/kms';
+import { toBytea } from '@/features/broker/lib/bytea';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -98,8 +99,4 @@ export async function DELETE() {
     return NextResponse.json({ error: 'revoke_failed' }, { status: 500 });
   }
   return NextResponse.json({ ok: true });
-}
-
-function toBytea(buf: Buffer): string {
-  return '\\x' + buf.toString('hex');
 }

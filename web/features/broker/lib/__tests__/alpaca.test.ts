@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { verifyCredentials, AlpacaError } from '../alpaca';
-import { LiveKeyRejectedError } from '../live-key';
+import { verifyCredentials, AlpacaError, _internal } from '../alpaca';
+import { ALPACA_PAPER_BASE_URL, LiveKeyRejectedError } from '../live-key';
 
 type FetchFn = typeof globalThis.fetch;
 
@@ -118,6 +118,35 @@ test('alpaca: network error maps to network code with generic message', async ()
         }
       );
     }
+  );
+});
+
+test('alpaca: AbortError maps to timeout code', async () => {
+  await withMockedFetch(
+    (async () => {
+      const err = new Error('aborted') as Error & { name: string };
+      err.name = 'AbortError';
+      throw err;
+    }) as FetchFn,
+    async () => {
+      await assert.rejects(
+        () => verifyCredentials({ keyId: 'PKGOOD1234567890', secret: 'verysecret1234567890' }),
+        (err: unknown) => err instanceof AlpacaError && err.code === 'timeout'
+      );
+    }
+  );
+});
+
+test('alpaca: assertSameHost rejects cross-origin URLs', () => {
+  assert.throws(
+    () => _internal.assertSameHost(new URL('https://evil.com/v2/account')),
+    (err: unknown) =>
+      err instanceof AlpacaError &&
+      err.code === 'unexpected' &&
+      err.message === 'alpaca host mismatch'
+  );
+  assert.doesNotThrow(() =>
+    _internal.assertSameHost(new URL(`${ALPACA_PAPER_BASE_URL}/v2/account`))
   );
 });
 

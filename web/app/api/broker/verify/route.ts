@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSupabase } from '@/lib/supabase/server';
 import { decryptSecret } from '@/features/broker/lib/kms';
 import { verifyCredentials, AlpacaError } from '@/features/broker/lib/alpaca';
+import { fromBytea } from '@/features/broker/lib/bytea';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,16 +56,4 @@ export async function POST() {
     }
     throw err;
   }
-}
-
-function fromBytea(value: string | Buffer): Buffer {
-  if (Buffer.isBuffer(value)) return value;
-  if (typeof value !== 'string' || !value.startsWith('\\x')) {
-    throw new Error('unexpected bytea payload shape');
-  }
-  const hex = value.slice(2);
-  if (!/^[0-9a-fA-F]*$/.test(hex) || hex.length % 2 !== 0) {
-    throw new Error('malformed bytea hex');
-  }
-  return Buffer.from(hex, 'hex');
 }

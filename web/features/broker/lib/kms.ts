@@ -139,7 +139,9 @@ function encryptLocal(plaintext: string): EncryptResult {
     const tag = cipher.getAuthTag();
 
     const envelope = writeEnvelope(VERSION_LOCAL, edk, iv, tag, ct);
-    return { ciphertext: envelope, kmsKeyId: 'local:dev' };
+    // Self-describing sentinel: callers / rotation tooling can identify dev
+    // envelopes from the column alone without parsing the ciphertext header.
+    return { ciphertext: envelope, kmsKeyId: 'local:kdf:v1' };
   } finally {
     dataKey.fill(0);
     master.fill(0);

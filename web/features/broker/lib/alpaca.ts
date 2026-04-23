@@ -1,5 +1,13 @@
 import { ALPACA_PAPER_BASE_URL, assertPaperKey } from './live-key';
 
+const ALPACA_PAPER_HOST = new URL(ALPACA_PAPER_BASE_URL).host;
+
+function assertSameHost(candidate: URL): void {
+  if (candidate.host !== ALPACA_PAPER_HOST) {
+    throw new AlpacaError('unexpected', 0, 'alpaca host mismatch');
+  }
+}
+
 export interface AlpacaCredentials {
   keyId: string;
   secret: string;
@@ -54,12 +62,11 @@ async function alpacaFetch<T>(
   init: RequestInit = {}
 ): Promise<T> {
   assertPaperKey(creds.keyId);
-  // new URL(path, base) refuses host rewrites via `//evil.com` or relative
-  // tricks. assertHost() is defense in depth if this ever takes user input.
+  // new URL(path, base) refuses host rewrites via `//evil.com` or absolute
+  // tricks. assertSameHost() is defense-in-depth for any future caller that
+  // accepts user-derived paths.
   const url = new URL(path, ALPACA_PAPER_BASE_URL);
-  if (url.host !== new URL(ALPACA_PAPER_BASE_URL).host) {
-    throw new AlpacaError('unexpected', 0, 'alpaca host mismatch');
-  }
+  assertSameHost(url);
 
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), ALPACA_TIMEOUT_MS);
@@ -115,3 +122,8 @@ export async function verifyCredentials(creds: AlpacaCredentials): Promise<Alpac
     trading_blocked: acct.trading_blocked,
   };
 }
+
+export const _internal = {
+  assertSameHost,
+  ALPACA_PAPER_HOST,
+};
